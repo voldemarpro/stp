@@ -78,19 +78,32 @@ class PositionsController extends MainController
 	 *
 	 * @param  string  $date  Date of traiding session
 	 */	
-	public function actionSummary($date = '')
+	public function actionSummary($date_from = '', $date_to = '')
 	{
 		$query = Position::find();
 
-		if ($date)
-			$query = $query->where("DATE(`open_time`) = '".date('Y-m-d', strtotime($date))."'");
-		else {
-			$query = $query->where("DATE(`open_time`) = '".date('Y-m-d')."'");
-			$date = date('d.m.Y');
+		if ($date_from) {
+			$query = $query->where("DATE(`open_time`) >= '".date('Y-m-d', strtotime($date_from))."'");
+		
+		} else {
+			$query = $query->where("DATE(`open_time`) >= '".date('Y-m-d')."'");
+			$date_from = date('d.m.Y');
 		}
 		
-		$items = $query->all();
+		if ($date_to) {
+			$query->andWhere("DATE(`open_time`) <= '".date('Y-m-d', strtotime($date_to))."'");
 		
+		} else {
+			$query->andWhere("DATE(`open_time`) <= '".date('Y-m-d')."'");
+			$date_to = date('d.m.Y');
+		}
+		
+		$dDiff = strtotime($date_to) - strtotime($date_from);
+		if ($dDiff < 0)
+			$dDiff = 0;
+		
+		$items = $query->all();
+
 		// резюме по кол-ву, типу котировкам сделок
 		// position summary as to qty, type and quotations
 		$stat = [
@@ -105,34 +118,36 @@ class PositionsController extends MainController
 			'SHORT_RATE'=>0,
 			'SHORT_QUOT' => [0=>[], 1=>[]],
 			
-			'LONG_FAILURE'=>0,
-			'SHORT_FAILURE'=>0
+			//'LONG_FAILURE'=>0,
+			//'SHORT_FAILURE'=>0
 		];
 		
 		// массив значений времени с интервалом 1 мин
 		// для построения диаграммы
 		$keys = [];
 		
-		// искуственный сдвиг по времени для нерабочих дней
-		$dtOffsetExtra = Yii::$app->params['time_offset'];			
-		
 		if (count($items)) {
 
 			// учет временной зоны (пересчет на мск)
-			$dtOffset = strtotime($date) - \Yii::$app->params['dto'];
+			//$dtOffset = strtotime($date_to) - \Yii::$app->params['dto'];
 			
-			// traiding day start unix-time in sec (date subtracted)
-			$timeOrigin = \Yii::$app->params['open_time'] - $dtOffsetExtra - (strtotime(date('Y-m-d')) - \Yii::$app->params['dto']);
-			
+			// trading day start unix-time in sec (date subtracted)
+			$timeOrigin = (\Yii::$app->params['open_time'] % (24 * 3600)) + strtotime($date_from);
+
 			// trading session duration in sec
-			$timeRangeMax = \Yii::$app->params['close_time'] - \Yii::$app->params['open_time'];
+			//$timeRangeMax = \Yii::$app->params['close_time'] - \Yii::$app->params['open_time'];
+			if ($dDiff < 1)
+				$timeRangeMax = \Yii::$app->params['close_time'] - \Yii::$app->params['open_time'];
+			else
+				$timeRangeMax = $dDiff;
+			
 			
 			foreach ($items as $it) {
 
-				if ((strtotime($it->open_time) - $dtOffset) < $timeOrigin)
+				if (strtotime($it->open_time) < $timeOrigin)
 					continue;
 				
-				if ((strtotime($it->open_time) - $dtOffset) > ($timeOrigin + $timeRangeMax))
+				if (strtotime($it->open_time) > ($timeOrigin + $timeRangeMax))
 					continue;
 					
 				/*if ((strtotime($it->close_time) - $dtOffset) > ($timeOrigin + $timeRangeMax))
@@ -140,8 +155,8 @@ class PositionsController extends MainController
 				
 				$stat['COUNT']++;
 					
-				$openTime = date('G:i', strtotime($it->open_time) + \Yii::$app->params['dto']);
-				$closeTime = date('G:i', strtotime($it->close_time) + \Yii::$app->params['dto']);
+				$openTime = date('D G:i', strtotime($it->open_time) + \Yii::$app->params['dto']);
+				$closeTime = date('D G:i', strtotime($it->close_time) + \Yii::$app->params['dto']);
 								
 				if ($it->type > 0) {
 					$stat['LONG']++;
@@ -149,8 +164,8 @@ class PositionsController extends MainController
 					
 					if ($it->close_time) {
 						$stat['LONG_QUOT'][1][$closeTime] = $it->close_quot;
-						if ($it->result < 0)
-							$stat['LONG_FAILURE']++;
+						//if ($it->result < 0)
+							//$stat['LONG_FAILURE']++;
 					}
 						
 				} else {
@@ -159,8 +174,8 @@ class PositionsController extends MainController
 					
 					if ($it->close_time) {
 						$stat['SHORT_QUOT'][1][$closeTime] = $it->close_quot;
-						if ($it->result < 0)
-							$stat['SHORT_FAILURE']++;
+						//if ($it->result < 0)
+							//$stat['SHORT_FAILURE']++;
 					}
 				}
 				
@@ -169,7 +184,11 @@ class PositionsController extends MainController
 			}
 			
 			for ($i = 0; $i <= ceil($timeRangeMax/60); $i++) {				
-				$keys[] = date('G:i', $timeOrigin + $i*60);			
+				if (date('G', $timeOrigin + \Yii::$app->params['dto'] + $i*60) < 10)
+					continue;
+				if (date('G', $timeOrigin + \Yii::$app->params['dto'] + $i*60) >= 19)
+					continue;
+				$keys[] = date('D G:i', $timeOrigin + \Yii::$app->params['dto'] + $i*60);			
 			}
 			
 			foreach ($keys as $k) {
@@ -193,12 +212,12 @@ class PositionsController extends MainController
 				$stat['SHORT_RATE'] = round($stat['SHORT'] / $stat['COUNT'] * 100);
 			}
 		}
-		
+
 		return $this->render('summary', [
-			'stat' => $stat,
-			'times'=>$keys,
-			'date'=>$date,
-			'sessionTimes'=>[\Yii::$app->params['open_time'] - $dtOffsetExtra, \Yii::$app->params['close_time'] - $dtOffsetExtra]
+			'stat'      => $stat,
+			'times'     => $keys,
+			'date_from' => $date_from,
+			'date_to'   => $date_to
 		]);
 	}
 

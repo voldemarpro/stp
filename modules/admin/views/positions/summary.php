@@ -6,34 +6,48 @@
 	</ul>
 	<br/>
 </div>
-
-<div class="col-lg-3 col-md-3">
-	<form action="/<?php echo yii\helpers\Url::to("{$this->context->module->id}/{$this->context->id}/summary/") ?>">
-		<div class="input-group">
-			<input type="text" class="form-control input-lg" name="date" value="<?php if ($date) echo date('d.m.Y', strtotime($date)) ?>" placeholder="По дате">
-			<span class="input-group-addon"><a href="" class="times">×</a></span>
+	
+<div class="col-lg-7 col-md-7 col-sm-12">
+	<form class="form-inline" action="/<?php echo yii\helpers\Url::to("{$this->context->module->id}/{$this->context->id}/summary/") ?>">
+		<div class="form-group">
+			<div class="input-group">
+				<input type="text" class="form-control input-lg" name="date_from" value="<?php if ($date_from) echo date('d.m.Y', strtotime($date_from)) ?>" placeholder="От даты">
+				<span class="input-group-addon"><a href="" class="times">×</a></span>
+			</div>
 		</div>
+		<div class="form-group">
+			<span>
+				&nbsp;&mdash;&nbsp;
+			</span>
+		</div>		
+		<div class="form-group">
+			<div class="input-group">
+				<input type="text" class="form-control input-lg" name="date_to" value="<?php if ($date_to) echo date('d.m.Y', strtotime($date_to)) ?>" placeholder="На дату">
+				<span class="input-group-addon"><a href="" class="times">×</a></span>
+			</div>
+		</div>
+		
+		<script>
+			$("[name^=date]").datepicker({
+				hideIfNoPrevNext: true,
+				changeYear: true,
+				changeMonth: true,
+				showWeek: false,
+				firstDay: 1,
+				yearRange: "<?php echo date('Y'),':',(date('Y') + 1) ?>",
+				dateFormat: "dd.mm.yy"
+			});
+			$("[name^=date]").next().click(function() {
+				return $(this).prev().val('').change() && false;
+			});
+			$("[name^=date]").change(function() {
+				$('form').first().submit();
+			});
+		</script>	
 	</form>
-	<script>
-		$("[name=date]").datepicker({
-			hideIfNoPrevNext: true,
-			changeYear: true,
-			changeMonth: true,
-			showWeek: false,
-			firstDay: 1,
-			yearRange: "<?php echo date('Y'),':',(date('Y') + 1) ?>",
-			dateFormat: "dd.mm.yy"
-		});
-		$("[name=date]").next().click(function() {
-			return $(this).prev().val('').change() && false;
-		});
-		$("[name=date]").change(function() {
-			$('form').first().submit();
-		});
-	</script>
 </div>
 
-<div class="col-lg-6 col-md-6"></div>
+<div class="col-lg-5 col-md-5"></div>
 
 
 <div id="charts-wrapper">
@@ -44,17 +58,17 @@
 	<div class="col-lg-12 col-md-12">
 		<h2>Открытие</h2>
 	</div>
-	<div class="col-lg-10 col-md-11">
+	<div class="col-lg-11 col-md-11">
 		<div id="pos-chart0"></div>
 	</div>
 
 	<script>
 		(function() {
 			var data = {
-				labels: ["<?php echo implode('", "', array_slice($times, 0, 300)) ?>"],
+				labels: ["<?php echo implode('", "', $times) ?>"],
 				series: [
-					[<?php echo implode(', ', array_slice($stat['LONG_QUOT'][0], 0, 300)) ?>],
-					[<?php echo implode(', ', array_slice($stat['SHORT_QUOT'][0], 0, 300)) ?>]
+					[<?php echo implode(', ', $stat['LONG_QUOT'][0]) ?>],
+					[<?php echo implode(', ', $stat['SHORT_QUOT'][0]) ?>]
 				]
 			};		
 			var options = {
@@ -115,6 +129,16 @@
 		})();
 	</script><?php
 		
+	echo '
+	<div class="col-lg-1 col-md-1">
+		<div class="pull-left" style="height:100px; background:#4db973">
+			<div style="height:'.(100 - $stat['LONG_RATE']).'px; width: 20px; background: white"></div></td>
+		</div>
+		<div class="pull-right" style="height:100px; background:red">
+			<div style="height:'.(100 - $stat['SHORT_RATE']).'px; width: 20px; background: white"></div>
+		</div>		
+	</div>';
+	
 	endif;
 		
 	if ($stat['COUNT'] - $stat['OPEN']):
@@ -123,7 +147,7 @@
 	<div class="col-lg-12 col-md-12">
 		<h2>Закрытие</h2>
 	</div>
-	<div class="col-lg-10 col-md-11">
+	<div class="col-lg-11 col-md-11">
 		<div id="pos-chart1"></div>
 	</div>
 	<script>
@@ -212,29 +236,8 @@
 					<td>Закрыто</td>
 					<td>', $stat['COUNT'] - $stat['OPEN'], '</td>					
 
-				</tr>
-				
-				<tr>
-					<td>LONG</td>
-					<td>', $stat['LONG'], ($stat['LONG'] ? " ({$stat['LONG_RATE']}%)": ''), '</td>
-					
-					<td>&nbsp;&nbsp;</td>
-					
-					<td>Убыток LONG</td>
-					<td>', $stat['LONG_FAILURE'], ($stat['LONG'] ? " (".round($stat['LONG_FAILURE']/$stat['LONG'] * 100)."%)": ''), '</td>					
-				</tr>
-
-				<tr>
-					<td>SHORT</td>
-					<td>', $stat['SHORT'], ($stat['SHORT'] ? " ({$stat['SHORT_RATE']}%)": ''), '</td>					
-					
-					<td>&nbsp;&nbsp;</td>
-					
-					<td>Убыток SHORT</td>
-					<td>', $stat['SHORT_FAILURE'], ($stat['SHORT'] ? " (".round($stat['SHORT_FAILURE']/$stat['SHORT'] * 100)."%)": ''), '</td>					
 				</tr>';
-
-				
+		
 			?> 
 			</tbody>
 		</table>
