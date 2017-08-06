@@ -1,0 +1,10 @@
+adminer/
+config/
+vendor/
+sql/
+runtime/
+assets/
+web/
+!web/index.php
+!web/js/stp.min.js
+!web/styles/common.css
