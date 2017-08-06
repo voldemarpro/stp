@@ -7,7 +7,7 @@
 	<br/>
 </div>
 
-<div class="col-lg-2 col-md-3">
+<div class="col-lg-3 col-md-3">
 	<form action="/<?php echo yii\helpers\Url::to("{$this->context->module->id}/{$this->context->id}/summary/") ?>">
 		<div class="input-group">
 			<input type="text" class="form-control input-lg" name="date" value="<?php if ($date) echo date('d.m.Y', strtotime($date)) ?>" placeholder="По дате">
@@ -33,92 +33,13 @@
 	</script>
 </div>
 
-<div class="col-lg-6 col-md-6">
-	<div style="margin-left:1em">
-		<br/>
-		<div id="range-selector"></div>
-	</div>
-</div>
+<div class="col-lg-6 col-md-6"></div>
 
-<script>
-	(function() {
-		var timeOrigin = <?php echo $sessionTimes[0] - strtotime(date('Y-m-d')) + $this->params['dto'] ?>;
-		var timeRangeMax = <?php echo $sessionTimes[1] - $sessionTimes[0] ?>;
-		var rateToTime = function(perc) {
-			var sec = (perc / 100 * timeRangeMax + timeOrigin);
-			var min = Math.round( (sec/60)%60 );
-			var h = Math.floor(sec/3600);
-			if (min < 10)
-				min = '0' + min;
-			return h + ':' + min;
-		};
-		var timePoints = [];
-		$('#range-selector').slider({
-			range: true,
-			min: 0,
-			max: 100,
-			step: 2,
-			slide: function(e, ui) {
-				$('.ui-slider-tooltip').filter(':eq(' + ui.handleIndex +')').text(rateToTime(ui.value));
-			},
-			change: function(e, ui) {
-				$('.ui-slider-tooltip').filter(':eq(' + ui.handleIndex +')').text(rateToTime(ui.value));
-				if (timePoints.length == 2) {
-					timePoints[ui.handleIndex] = ui.value;
-					if (window.Dialog)
-						window.Dialog.showProc();
-					$.get('<?php echo "/{$this->context->module->id}/{$this->context->id}/summary/?date=$date" ?>&t1=' + timePoints[0] + '&t2=' + timePoints[1],
-						{}, function (data) {
-							$('#charts-wrapper').nextAll().remove();
-							$('#charts-wrapper').replaceWith(data);
-							if (window.Dialog)
-								window.Dialog.close();
-						}
-					);
-				} else
-					timePoints[ui.handleIndex] = (ui.handleIndex == 0 ? 0 : 100);
-			},
-			create: function(e, ui) {
-				var tooltip = $('<div class="text-center ui-slider-tooltip" />').css({
-					position: 'absolute',
-					padding: '1px 2px',
-					width: '48px',
-					fontSize: '110%',
-					color: '#333',
-					top: -26,
-					left: -17
-				});			
-				$(this).slider('values', 0, 0);
-				$(this).slider('values', 1, 100);
-				$(e.target).find('.ui-slider-handle').append(tooltip);
-				$('.ui-slider-tooltip').first().text(rateToTime(0));
-				$('.ui-slider-tooltip').last().text(rateToTime(100));
-				$('.ui-slider-tooltip').show();
-			}
-		});
-	})();
-</script>
-
-<!--<div class="col-lg-12 col-md-12">
-	<div>
-		<label class="radio-inline"><input name="group" type="radio" checked="checked">Открытие</label>
-		<label class="radio-inline"><input name="group" type="radio">Закрытие</label>
-	</div>
-</div>-->
 
 <div id="charts-wrapper">
 	<?php
-	/*	
-		$maxL = max($stat['LONG_QUOT'][0]);
-		$maxS = max($stat['SHORT_QUOT'][0]);
-		
-		$ref = max($maxL, $maxS);
-		
-		$ticks = [];
-		for ($i = ($ref - 0.4);  $i <= ($ref + 0.4); $i = ($i + 0.025))
-			$ticks[] = number_format($i, 3);
-	*/	
 		if ($stat['COUNT']):
+	
 	?> 	
 	<div class="col-lg-12 col-md-12">
 		<h2>Открытие</h2>
@@ -318,12 +239,3 @@
 			</tbody>
 		</table>
 	</div>
-<!--<script>
-	/*$(':radio').click(function(e) {
-		e.stopPropagation();
-		if (this.checked) {
-			$('#pos-chart' + $(this).parent().index()).parent().removeClass('hidden');
-			$('#pos-chart' + (1 - $(this).parent().index())).parent().addClass('hidden');
-		}	
-	}).first().click();*/
-</script>-->

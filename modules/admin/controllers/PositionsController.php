@@ -194,7 +194,7 @@ class PositionsController extends MainController
 			}
 		}
 		
-		return $this->render('index', [
+		return $this->render('summary', [
 			'stat' => $stat,
 			'times'=>$keys,
 			'date'=>$date,
