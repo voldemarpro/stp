@@ -10,7 +10,7 @@ use app\models\Payout;
 use yii\data\ActiveDataProvider;
 
 /**
- * Management of traiders positions
+ * Management of traders positions
  */
 class PositionsController extends MainController
 {	
@@ -71,28 +71,14 @@ class PositionsController extends MainController
 		if (isset($_POST['_referrer']))
 			return $this->redirect($_POST['_referrer']);
     }
-/*
-	private function getBaseModel($id = 0)
-    {
-		if ($id = intval($id))
-			$model = Position::findOne($id);
-		
-		if (empty($model))
-			$model = new Position;
-	
-		return $model;
-    }
-*/
 
 
 	/**
 	 * Summary (analytics)
 	 *
 	 * @param  string  $date  Date of traiding session
-	 * @param  string  $t1    Start time point (%) of traiding session
-	 * @param  string  $t2    End time point (%) of traiding session
 	 */	
-	public function actionSummary($date = '', $t1 = false, $t2 = false)
+	public function actionSummary($date = '')
 	{
 		$query = Position::find();
 
@@ -132,22 +118,14 @@ class PositionsController extends MainController
 		
 		if (count($items)) {
 
-
 			// учет временной зоны (пересчет на мск)
 			$dtOffset = strtotime($date) - \Yii::$app->params['dto'];
 			
 			// traiding day start unix-time in sec (date subtracted)
 			$timeOrigin = \Yii::$app->params['open_time'] - $dtOffsetExtra - (strtotime(date('Y-m-d')) - \Yii::$app->params['dto']);
+			
 			// trading session duration in sec
 			$timeRangeMax = \Yii::$app->params['close_time'] - \Yii::$app->params['open_time'];
-			if ($t1 !== false || $t2 !== false) {
-				$t1 = $t1 === false ? 0 : (int)$t1;
-				$t2 = $t2 === false ? 100 : (int)$t2;
-				if ($t1 >= 0 && $t1 < $t2 && $t2 <= 100) {
-					$timeOrigin += round($t1 / 100 * $timeRangeMax);
-					$timeRangeMax = round(($t2 - $t1) / 100 * $timeRangeMax);
-				}
-			}
 			
 			foreach ($items as $it) {
 
@@ -216,19 +194,12 @@ class PositionsController extends MainController
 			}
 		}
 		
-		if ($t1 !== false && $t2 !== false) {		
-			return $this->renderPartial('summary_partial', [
-				'stat' => $stat,
-				'times'=>$keys,
-				'date'=>$date
-			]);
-		} else
-			return $this->render('summary', [
-				'stat' => $stat,
-				'times'=>$keys,
-				'date'=>$date,
-				'sessionTimes'=>[\Yii::$app->params['open_time'] - $dtOffsetExtra, \Yii::$app->params['close_time'] - $dtOffsetExtra]
-			]);
+		return $this->render('index', [
+			'stat' => $stat,
+			'times'=>$keys,
+			'date'=>$date,
+			'sessionTimes'=>[\Yii::$app->params['open_time'] - $dtOffsetExtra, \Yii::$app->params['close_time'] - $dtOffsetExtra]
+		]);
 	}
 
 	/**
