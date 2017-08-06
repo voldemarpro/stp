@@ -44,7 +44,7 @@
 	<div class="col-lg-12 col-md-12">
 		<h2>Открытие</h2>
 	</div>
-	<div class="col-lg-8 col-md-10">
+	<div class="col-lg-10 col-md-11">
 		<div id="pos-chart0"></div>
 	</div>
 
@@ -83,13 +83,13 @@
 							new Chartist.Svg('path', {
 								d: ['M',
 								data.x,
-								data.y - 10,
+								data.y - 6,
 								'L',
-								data.x - 10,
-								data.y + 6,
+								data.x - 6,
+								data.y + 3,
 								'L',
-								data.x + 10,
-								data.y + 6,
+								data.x + 6,
+								data.y + 3,
 								'z'].join(' '),
 								style: 'fill-opacity: 1; fill: green',
 							}, 'ct-area')				
@@ -99,13 +99,13 @@
 							new Chartist.Svg('path', {
 								d: ['M',
 								data.x,
-								data.y + 10,
+								data.y + 6,
 								'L',
-								data.x + 10,
-								data.y - 6,
+								data.x + 6,
+								data.y - 3,
 								'L',
-								data.x - 10,
-								data.y - 6,
+								data.x - 6,
+								data.y - 3,
 								'z'].join(' '),
 								style: 'fill-opacity: 1',
 							}, 'ct-area')				
@@ -123,7 +123,7 @@
 	<div class="col-lg-12 col-md-12">
 		<h2>Закрытие</h2>
 	</div>
-	<div class="col-lg-8 col-md-10">
+	<div class="col-lg-10 col-md-11">
 		<div id="pos-chart1"></div>
 	</div>
 	<script>
@@ -160,13 +160,13 @@
 							new Chartist.Svg('path', {
 								d: ['M',
 								data.x,
-								data.y - 10,
+								data.y - 6,
 								'L',
-								data.x - 10,
-								data.y + 6,
+								data.x - 6,
+								data.y + 3,
 								'L',
-								data.x + 10,
-								data.y + 6,
+								data.x + 6,
+								data.y + 3,
 								'z'].join(' '),
 								style: 'fill-opacity: 1; fill: red',
 							}, 'ct-area')				
@@ -176,13 +176,13 @@
 							new Chartist.Svg('path', {
 								d: ['M',
 								data.x,
-								data.y + 10,
+								data.y + 6,
 								'L',
-								data.x + 10,
-								data.y - 6,
+								data.x + 6,
+								data.y - 3,
 								'L',
-								data.x - 10,
-								data.y - 6,
+								data.x - 6,
+								data.y - 3,
 								'z'].join(' '),
 								style: 'fill-opacity: 1; fill: green',
 							}, 'ct-area')				
