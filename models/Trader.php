@@ -311,5 +311,19 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 			}
 		}
 	}
+	
+	public static function correctPhone($phone = '')
+	{
+		if ($phone) {
+			$phone = preg_replace('/[^\d]/', '', $phone);
+			if (strlen($phone) == 11) {
+				if ($phone[0] == '7' || $phone[0] == '8')
+					$phone = substr($phone, 1);
+			} elseif (strlen($phone) < 10)
+				return false;
+		}
+		
+		return $phone;
+	}
 }
 ?>
