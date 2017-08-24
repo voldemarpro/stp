@@ -142,7 +142,8 @@ class Thread extends ActiveRecord
 						'title'		=> $page['title'],
 						'active'    => $page['active'],						
 						'name'      => $page['name'],
-						'vname'     => $page['vname']
+						'vname'     => $page['vname'],
+						'icon'      => $page['icon']
 					);
 				if (isset($tree[$id])) {
 					$p_id_arr[] = $p_id;
