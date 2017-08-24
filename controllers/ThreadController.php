@@ -5,7 +5,10 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use app\models\LoginForm;
-use app\models\Quotation;
+use app\models\Trader;
+use app\models\Notice;
+use app\models\Contract;
+
 
 class ThreadController extends Controller
 {
@@ -19,7 +22,7 @@ class ThreadController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['index', 'logout', 'getstate', 'readnotice'],
+                        'actions' => ['index', 'logout', 'summary', 'readnotice'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -70,7 +73,10 @@ class ThreadController extends Controller
         }
 
         $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post(), '') && $model->login()) {
+		$model->load(Yii::$app->request->post(), '');
+		$model->login = Trader::correctPhone($model->login);
+        
+		if ($model->login()) {
             return $this->redirect("/");
         }
 
@@ -93,31 +99,58 @@ class ThreadController extends Controller
     }
 	
     /**
-     * Обновление состояния текущих котировок USD ЦБ/BRENT и т.п. для "шапки" страницы.
-     *
-     * @return json
+     * Возвращает состояние торгового кабинета
+	 * 
+	 * @return array
      */	
-    public function actionGetstate($ajax = false) {
-		// Форматирование знака числовой величины
-		$signPref = [-1 => '<em class="monosign">&ndash;</em>', 0 => '<em class="monosign">&nbsp;</em>', 1 => '<em class="monosign">+</em>'];
+    public function actionSummary() {
 		
-		$open = 1;
-		$nArr = [];
-		$hQ = Quotation::getheaderquotes();
-
-		foreach ($hQ as &$val) {
-			$val['avg'] = \number_format($val['avg'], 2);
-			$val['diff'] = $signPref[$val['diff'] ? $val['diff']/(\abs($val['diff'])) : 0].(\number_format(\abs($val['diff']), 2));
-		}
-		if (time() >= \Yii::$app->params['close_time'] || time() < \Yii::$app->params['open_time'])
-			$open = 0;
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 		
+		$noticesToArray = [];
 		if ($notices = \Yii::$app->user->identity->getNotices()->limit(2)->all())
 			foreach ($notices as $obj)
-				$nArr[] = ['id'=>$obj->id, 'text'=>$obj->message];
-
-		return \json_encode(['quot'=>$hQ, 'open'=>$open, 'notices'=>$nArr], JSON_FORCE_OBJECT);
-    }
+				$noticesToArray[] = ['id'=>$obj->id, 'text'=>$obj->message];
+		
+		$allowTrade = time() < Yii::$app->params['close_time'] || time() > Yii::$app->params['open_time'];
+		$s = [
+			'session' => [
+				'time' => time() + 3 * 24 * 3600,
+				'allowTrade' => (int)$allowTrade
+			],
+			'notices'  => $noticesToArray,
+			'quotes'   => [],
+			'position' => []
+		];
+		
+		$q = Contract::getQuotes();
+		$s['quotes'] = $q[STP_VRS];
+		$s['quotes']['diff'] = $s['quotes']['close'] 
+								? ($s['quotes']['close'] - ($s['quotes']['bid'] + $s['quotes']['ask']) / 2) / $s['quotes']['close'] * 100
+								: 0;
+		$s['quotes']['diff'] = round($s['quotes']['diff'], 2);						
+		
+		$p = Position::find()
+					->where('`user_id` = '.Yii::$app->user->id)
+					->andWhere('DATE(`open_time`) = CURDATE()')
+					->one();
+		if ($p) {
+			if ($p->close_time === null) {
+				$tradeQuot = $p->type > 0 ? $s['quotes']['bid'] ? $s['quotes']['ask'];
+				$result = $p->type * ($tradeQuot - $p->open_quot) * $p->volume;	
+			} else
+				$result = $p->result;
+			
+			$s['position'] = [
+				'type'       => $p->type,
+				'volume'     => $p->volume,
+				'close_time' => $p->close_time,
+				'result'     => $p->result
+			];
+		}
+		
+		return $s;
+	}
 	
     /**
      * Mark notice as read
