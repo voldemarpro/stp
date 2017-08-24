@@ -5,7 +5,7 @@ use Yii;
 use app\modules\admin\components\MainController;
 use app\modules\admin\models\Param;
 use app\models\Trader;
-use app\models\Payout;
+use app\models\MoneyTransfer;
 use yii\data\ActiveDataProvider;
 
 /**
@@ -18,13 +18,13 @@ class PaymentsController extends MainController
         $f = intval($f);
 		
 		if ($f >= 0) {
-			$query = Payout::find()->where("`type` = $f");
+			$query = MoneyTransfer::find()->where("`rec_type` = $f");
 		
 		} elseif ($for = intval($for)) {
-			$query = Payout::find()->where("`user_id` = $for");
+			$query = MoneyTransfer::find()->where("`user_id` = $for");
 		
 		} else {
-			$query = Payout::find();
+			$query = MoneyTransfer::find();
 		}
 		
 		$provider = new ActiveDataProvider([
@@ -56,7 +56,7 @@ class PaymentsController extends MainController
 			'model'		=> $model,
 			'title'		=> $model->isNewRecord ? 'Новый перевод средств' : 'Редактирование записи о платеже',
 			'options'=> [
-				'type' => Payout::$types
+				'type' => MoneyTransfer::$types
 			],
 		]);
     }
@@ -84,10 +84,10 @@ class PaymentsController extends MainController
 	private function getBaseModel($id = 0)
     {
 		if ($id = intval($id))
-			$model = Payout::findOne($id);
+			$model = MoneyTransfer::findOne($id);
 		
 		if (empty($model))
-			$model = new Payout;
+			$model = new MoneyTransfer;
 
 		if ($model->isNewRecord || $model->type > 0)
 			$model->scenario = 'default';

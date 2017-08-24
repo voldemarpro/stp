@@ -291,7 +291,7 @@ foreach ($fields as $field)
 				<label for="">', $label, '</label>
 				<select class="form-control input-sm">';
 
-				foreach (\app\models\Position::$types as $i=>$t) 
+				foreach (\app\models\MoneyTransfer::$recipients as $i=>$t) 
 					echo '
 					<option value="', $i, '"', ($i != $value ? '' : ' selected="selected"'), '>', $t, '</option>';
 					
@@ -436,6 +436,21 @@ foreach ($fields as $field)
 				foreach ($options as $i=>$o) 
 					echo '
 					<option value="', $i, '"', ($i != $value ? '' : ' selected="selected"'), '>', $o, '</option>';
+					
+			echo '
+				</select>
+			</div>';
+			break;
+			
+		case 19:
+			echo '
+			<div class="form-group">
+				<label for="">', $label, '</label>
+				<select class="form-control input-sm">';
+
+				foreach (\app\models\MoneyTransfer::$grades as $i=>$g) 
+					echo '
+					<option value="', $i, '"', ($i != $value ? '' : ' selected="selected"'), '>', $g, '</option>';
 					
 			echo '
 				</select>

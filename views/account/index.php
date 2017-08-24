@@ -52,7 +52,7 @@ else
 					<select id="f1_card" class="form-control input-lg" name="aux">
 						<option value="">Не выбран</option><?php
 						
-						foreach (app\models\Payout::$types as $key=>$name) {
+						foreach (app\models\MoneyTransfer::$recipients as $key=>$name) {
 							if ($key > 1) {
 								if ($key != 2 || !\Yii::$app->user->identity->deposit)
 									continue;

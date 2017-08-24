@@ -3,7 +3,7 @@ namespace app\controllers;
 
 use Yii;
 use app\components\MainController;
-use app\models\Payout;
+use app\models\MoneyTransfer;
 use app\models\Request;
 
 /**
@@ -25,7 +25,7 @@ class AccountController extends MainController
 	public function actionIndex()
     {
         return $this->render('index', [
-           'items' => Payout::find()->where('`user_id` = '.Yii::$app->user->id)->orderBy('`date` DESC')->limit(30)->all()
+           'items' => MoneyTransfer::find()->where('`user_id` = '.Yii::$app->user->id)->orderBy('`date` DESC')->limit(30)->all()
         ]);
     }
 	

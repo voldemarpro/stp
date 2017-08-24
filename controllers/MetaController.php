@@ -7,7 +7,7 @@ use app\models\Quotation;
 use app\models\News;
 use app\models\Trader;
 use app\models\Position;
-use app\models\Payout;
+use app\models\MoneyTransfer;
 
 /**
  * Контроллер для исполнения фоновых задач
@@ -210,7 +210,7 @@ class MetaController extends Controller
 			$sms = new \app\components\Sms;
 				
 			foreach ($posGrouped as $pos) {
-				$payout = new Payout;
+				$MoneyTransfer = new MoneyTransfer;
 				
 				$user = $Traders[$pos->user_id];
 
@@ -223,20 +223,20 @@ class MetaController extends Controller
 					$pos->result = -($quot['ask'] - $pos->open_quot) * $pos->open_sum;
 					
 				if ($pos->result) {	
-					$payout->user_id = $user->id;
-					$payout->type = 0;					
-					$payout->{'date'} = date('Y-m-d');					
+					$MoneyTransfer->user_id = $user->id;
+					$MoneyTransfer->rec_type = 0;					
+					$MoneyTransfer->{'date_time'} = date('Y-m-d H:i:s');					
 					if ($pos->result > 0) {
 						$user->debit += ((1 - $user->fee/100) * $pos->result);
-						$payout->sum = (1 - $user->fee/100) * $pos->result;
+						$MoneyTransfer->sum = (1 - $user->fee/100) * $pos->result;
 					
 					// If buy-out is off and the result is negative we charge user's sotacard 
 					} elseif (!$user->opt) {
 						$user->debit += $pos->result;
-						$payout->sum = $pos->result;
+						$MoneyTransfer->sum = $pos->result;
 					
 					} else
-						$payout->sum = 0;
+						$MoneyTransfer->sum = 0;
 				}
 				
 				$user->balance = $user->credit;	
@@ -252,14 +252,14 @@ class MetaController extends Controller
 				try {
 					$pos->save();
 					$user->save();
-					if ($payout->sum)
-						$payout->save();
+					if ($MoneyTransfer->sum)
+						$MoneyTransfer->save();
 					
 					$dbt->commit();
 					
-					if ($payout->sum) {
-						$msg = $payout->sum > 0 ? 'Зачисление ' : 'Списание ';
-						$sms->send('8'.$user->phone, $msg . number_format($payout->sum, 2, '.', ' ')." RUB\nSOTACARD", \Yii::$app->params['sms_sender']);
+					if ($MoneyTransfer->sum) {
+						$msg = $MoneyTransfer->sum > 0 ? 'Зачисление ' : 'Списание ';
+						$sms->send('8'.$user->phone, $msg . number_format($MoneyTransfer->sum, 2, '.', ' ')." RUB\nSOTACARD", \Yii::$app->params['sms_sender']);
 					}
 					
 					$i++;
@@ -311,17 +311,17 @@ class MetaController extends Controller
 				$user->credit = $user->credit + $it->amount;
 				$user->debit -= $it->amount;
 
-				$payout = new Payout;
-				$payout->sum = $it->amount;
-				$payout->type = 1;
-				$payout->user_id = $user->id;
-				$payout->{'date'} = date('Y-m-d');
+				$MoneyTransfer = new MoneyTransfer;
+				$MoneyTransfer->sum = $it->amount;
+				$MoneyTransfer->rec_type = 1;
+				$MoneyTransfer->user_id = $user->id;
+				$MoneyTransfer->{'date_time'} = date('Y-m-d H:i:s');
 
-				$payout2 = new Payout;
-				$payout2->sum = -1 * $it->amount;
-				$payout2->type = 0;
-				$payout2->user_id = $user->id;
-				$payout2->{'date'} = date('Y-m-d');
+				$MoneyTransfer2 = new MoneyTransfer;
+				$MoneyTransfer2->sum = -1 * $it->amount;
+				$MoneyTransfer2->rec_type = 0;
+				$MoneyTransfer2->user_id = $user->id;
+				$MoneyTransfer2->{'date_time'} = date('Y-m-d H:i:s');
 				
 				$it->status = 1;
 
@@ -331,8 +331,8 @@ class MetaController extends Controller
 				try {
 					$it->save();
 					$user->save();
-					$payout->save();
-					$payout2->save();
+					$MoneyTransfer->save();
+					$MoneyTransfer2->save();
 					
 					$dbt->commit();
 
@@ -368,18 +368,18 @@ class MetaController extends Controller
 			$phones = [];
 			
 			foreach ($Traders as $t) {
-				$payout = new Payout;
-				$payout->sum = abs($t->debit);
-				$payout->type = 0;
-				$payout->user_id = $t->id;
-				$payout->{'date'} = date('Y-m-d');
+				$MoneyTransfer = new MoneyTransfer;
+				$MoneyTransfer->sum = abs($t->debit);
+				$MoneyTransfer->rec_type = 2;
+				$MoneyTransfer->user_id = $t->id;
+				$MoneyTransfer->{'date_time'} = date('Y-m-d H:i:s');
 				$t->debit = 0;				
 
 				$dbt = \Yii::$app->db->beginTransaction();
 				
 				try {
 					$t->save();
-					$payout->save();
+					$MoneyTransfer->save();
 					
 					$dbt->commit();
 					

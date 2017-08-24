@@ -5,7 +5,7 @@
 				<select class="form-control input-lg" name="f">
 					<option value="-1">Все</option><?php
 					
-				foreach (\app\models\Payout::$types as $i=>$t)
+				foreach (\app\models\MoneyTransfer::$recipients as $i=>$t)
 					echo '
 					<option value="', $i, '"', ($i == $filter ? ' selected="selected"' : ''), '>', $t, '</option>';
 					
@@ -72,7 +72,7 @@
 					</td>
 					
 					<td>', app\models\Position::formatSign($it->sum ? $it->sum : 1), ' ', number_format(abs($it->sum), 2, '.', ' '), '</td>
-					<td>', \app\models\Payout::$types[$it->type], '</td>
+					<td>', \app\models\MoneyTransfer::$recipients[$it->rec_type], '</td>
 					<td class="actions">',
 					($it->type > 0 
 						? '
