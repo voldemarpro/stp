@@ -116,7 +116,9 @@ class ThreadController extends Controller
 		$s = [
 			'session' => [
 				'time' => time() + 3 * 24 * 3600,
-				'allowTrade' => (int)$allowTrade
+				'allowTrade' => (int)$allowTrade,
+				'allowBuy' => (int)$allowTrade,
+				'allowSell' => (int)$allowTrade
 			],
 			'notices'  => $noticesToArray,
 			'quotes'   => [],
@@ -141,12 +143,21 @@ class ThreadController extends Controller
 			} else
 				$result = $p->result;
 			
+			if ($p->type > 0)
+				$s['session']['allowBuy'] = 0;
+			else
+				$s['session']['allowSell'] = 0;
+			
 			$s['position'] = [
 				'type'       => $p->type,
 				'volume'     => $p->volume,
 				'close_time' => $p->close_time,
 				'result'     => $p->result
 			];
+		
+		} else {
+			$s['session']['allowBuy'] = (int)($allowTrade && time() < Yii::$app->params['input_before']);
+			$s['session']['allowSell'] = (int)($allowTrade && time() < Yii::$app->params['input_before']);
 		}
 		
 		return $s;
