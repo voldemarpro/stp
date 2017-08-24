@@ -3,7 +3,7 @@ namespace app\controllers;
 
 use Yii;
 use yii\web\Controller;
-use app\models\Quotation;
+use app\models\Contract;
 use app\models\News;
 use app\models\Trader;
 use app\models\Position;
@@ -17,30 +17,9 @@ class MetaController extends Controller
 
     public function actionIndex()
     {
-		return $this->actionResetusdrub();
+		return true;
     }
-	
-	/**
-     * Обновление котировок USD/RUB MOEX
-     */
-    public function actionResetusdrub()
-    {
-		$usdRub = Quotation::getBase();
-		$quot = Quotation::findOne(Quotation::USD_RUB_MOEX);
-		$quot->bid = (float)$usdRub['bid'];
-		$quot->ask = (float)$usdRub['ask'];
-		$quot->avg = ($quot->bid + $quot->ask)/2;
-		$quot->date_time = date('Y-m-d H:i:s');
-		
-		$dt = \time() - Yii::$app->params['close_time'];
-		if ($dt <= 5 && $dt >= 0)
-			$quot->ref = $quot->avg; // реперная точка - время закрытия торгов
 
-		$quot->diff = $quot->avg - (float)$quot->ref;
-		
-		echo (string)$quot->update();
-    }
-	
 	/**
      * Удаление неактуальных новостей (давность более 7дн)
      */
@@ -173,14 +152,13 @@ class MetaController extends Controller
 			}
 		}
     }
-	
-	
+
 	/**
-	 * Автоматическое закрытие сделок
+	 * Автоматическое закрытие сделок и сальдирование
 	 */
     public function actionClearing()
     {
-		if ((time() - Yii::$app->params['close_time']) >= 5)
+		if ((time() - Yii::$app->params['close_time']) > 4)
 			return false;
 
 		//открытые активные позиции
@@ -190,93 +168,114 @@ class MetaController extends Controller
 			->andWhere('`close_time` IS NULL')
 			->orderBy('`id`')
 			->all();
-		
 		if ($positions) {
-			
 			$i = 0;
 			$posGrouped = [];
 			foreach ($positions as $pos)
 				$posGrouped[$pos->user_id] = $pos;
 			
 			// трейдеры, имеющие незакрытые позиции
-			$Traders = Trader::find()
+			$traders = Trader::find()
 				->where(['id'=>array_keys($posGrouped)])
 				->indexBy('id')
 				->all();
 			
 			// котировки при закрытии	
-			$quot = Quotation::findOne(Quotation::USD_RUB_MOEX);
+			$quotes = Contract::getQuotes();
+			$quot = $quotes[STP_VRS];
 			
-			$sms = new \app\components\Sms;
-				
+			if (!$quot)
+				return false;
+
 			foreach ($posGrouped as $pos) {
-				$MoneyTransfer = new MoneyTransfer;
-				
-				$user = $Traders[$pos->user_id];
-
+				$u = $traders[$pos->user_id];
+				$u->balance = $user->credit;
+				$pos->comment = 'sota-'.STP_VRS;
 				$pos->close_quot = $pos->type < 0 ? $quot['ask'] : $quot['bid'];
-				$pos->close_time = date('Y-m-d H:i:s', Yii::$app->params['close_time']);
-
+				$pos->close_time = date('Y-m-d H:i:s');
 				if ($pos->type > 0)
 					$pos->result = ($quot['bid'] - $pos->open_quot) * $pos->open_sum;
 				else
 					$pos->result = -($quot['ask'] - $pos->open_quot) * $pos->open_sum;
-					
-				if ($pos->result) {	
-					$MoneyTransfer->user_id = $user->id;
-					$MoneyTransfer->rec_type = 0;					
-					$MoneyTransfer->{'date_time'} = date('Y-m-d H:i:s');					
-					if ($pos->result > 0) {
-						$user->debit += ((1 - $user->fee/100) * $pos->result);
-						$MoneyTransfer->sum = (1 - $user->fee/100) * $pos->result;
-					
-					// If buy-out is off and the result is negative we charge user's sotacard 
-					} elseif (!$user->opt) {
-						$user->debit += $pos->result;
-						$MoneyTransfer->sum = $pos->result;
-					
-					} else
-						$MoneyTransfer->sum = 0;
-				}
-				
-				$user->balance = $user->credit;	
-				
-				if ($pos->result < 0 && $user->opt)
-					$pos->comment = 'sota-1';
-				else
-					$pos->comment = 'авто';
-				
-				$conn = \Yii::$app->db;
-				$dbt = $conn->beginTransaction();
 				
 				try {
 					$pos->save();
-					$user->save();
-					if ($MoneyTransfer->sum)
-						$MoneyTransfer->save();
-					
+					$u->save();
 					$dbt->commit();
-					
-					if ($MoneyTransfer->sum) {
-						$msg = $MoneyTransfer->sum > 0 ? 'Зачисление ' : 'Списание ';
-						$sms->send('8'.$user->phone, $msg . number_format($MoneyTransfer->sum, 2, '.', ' ')." RUB\nSOTACARD", \Yii::$app->params['sms_sender']);
-					}
-					
 					$i++;
 				} catch (\Exception $e) {
 					$dbt->rollBack();
 					$pos->comment = "Ошибка $e->statusCode";
 					$pos->save();
 				}				
-				
 			}
 			
-			return $i;
+			print "$i position(s) closed";
+		}
+		
+		
+		// трейдеры с тарифами для начисления прибыли
+		$traders = Trader::find()
+			->where([ 'tariff_id'=>[1,2] ])
+			->indexBy('id')
+			->all();
+		if ($traders) {
+			$j = 0;
+			$positions = Position::find()
+				->where(['id'=>array_keys($traders)])
+				->andWhere('DATE(`close_time`) = CURDATE()')
+				->all();
+			$sms = new \app\components\Sms;			
+			
+			foreach ($positions as $pos) {
+				$moneyTransfer = new MoneyTransfer;		
+				$u = $traders[$pos->user_id];
+	
+				if ($pos->result) {
+					$moneyTransfer->user_id = $u->id;
+					$moneyTransfer->rec_type = 0;					
+					$moneyTransfer->{'date_time'} = date('Y-m-d H:i:s');					
+					if ($pos->result > 0) {
+						$u->debit += ((1 - $u->fee/100) * $pos->result);
+						$moneyTransfer->sum = (1 - $u->fee/100) * $pos->result;
+					
+					// If buy-out is off and the result is negative we charge user's sotacard 
+					} elseif (!$user->tariff_id) {
+						$u->debit += $pos->result;
+						$moneyTransfer->sum = $pos->result;
+					
+					} else
+						$moneyTransfer->sum = 0;
+				}
+
+				$conn = \Yii::$app->db;
+				$dbt = $conn->beginTransaction();
+				
+				try {
+					$u->save();
+					if ($moneyTransfer->sum)
+						$moneyTransfer->save();
+					
+					$dbt->commit();
+					
+					if ($moneyTransfer->sum) {
+						$msg = $moneyTransfer->sum > 0 ? 'Зачисление ' : 'Списание ';
+						$sms->send('8'.$u->phone, $msg . number_format($moneyTransfer->sum, 2, '.', ' ')." RUB\nSOTACARD", \Yii::$app->params['sms_sender']);
+					}
+					
+					$j++;
+				
+				} catch (\Exception $e) {
+					$dbt->rollBack();
+				}					
+			}
+			
+			print "$j transfer(s) completed";
 		}
     }
 	
 	/**
-	 * Автоматический перевод средств на торговый счет
+	 * Перевод средств на торговый счет
 	 */
     public function actionDebit_to_credit()
     {
@@ -352,34 +351,34 @@ class MetaController extends Controller
     }
 	
 	/**
-	 * Автоматический выкуп убытка на счете SOTACARD
+	 * Выкуп убытка на счете SOTACARD
 	 */
-    public function actionVoid()
+    public function actionVoid_debit()
     {
 		// трейдеры
-		$Traders = Trader::find()
+		$traders = Trader::find()
 			->where('`debit` < 0')
 			->indexBy('id')
 			->all();
 		
-		if ($Traders) {
+		if ($traders) {
 			
 			$sms = new \app\components\Sms;
 			$phones = [];
 			
-			foreach ($Traders as $t) {
-				$MoneyTransfer = new MoneyTransfer;
-				$MoneyTransfer->sum = abs($t->debit);
-				$MoneyTransfer->rec_type = 2;
-				$MoneyTransfer->user_id = $t->id;
-				$MoneyTransfer->{'date_time'} = date('Y-m-d H:i:s');
+			foreach ($traders as $t) {
+				$moneyTransfer = new MoneyTransfer;
+				$moneyTransfer->sum = abs($t->debit);
+				$moneyTransfer->rec_type = 2;
+				$moneyTransfer->user_id = $t->id;
+				$moneyTransfer->{'date_time'} = date('Y-m-d H:i:s');
 				$t->debit = 0;				
 
 				$dbt = \Yii::$app->db->beginTransaction();
 				
 				try {
 					$t->save();
-					$MoneyTransfer->save();
+					$moneyTransfer->save();
 					
 					$dbt->commit();
 					
@@ -393,41 +392,6 @@ class MetaController extends Controller
 			if ($phones) {
 				$sms->send($phones, "Выкуп убытка\nSOTACARD", \Yii::$app->params['sms_sender']);
 				return count($phones);
-			}
-		}
-    }
-	
-	/**
-	 * Статистика по сделкам на конец каждого торгового дня
-	 */
-    public function actionSummarize()
-    {
-		// трейдеры
-		$Traders = Trader::find()
-			->indexBy('id')
-			->all();
-		
-		if ($Traders) {
-			
-			// сделки
-			$positions = Position::find()
-				->where("`open_time` >= '".date('Y-m-01')."' AND `disabled` = 0")
-				->all();
-			
-			$posStat = [];
-			foreach ($positions as $pos) {
-				if (empty($posStat[$pos->user_id]))
-					$posStat[$pos->user_id] = [1, ($pos->result > 0 ? 1 : 0)];
-				else {
-					$posStat[$pos->user_id][0] = $posStat[$pos->user_id][0] + 1;
-					if ($pos->result > 0)
-						$posStat[$pos->user_id][1] = $posStat[$pos->user_id][1] + 1;
-				}
-			}
-			
-			foreach ($Traders as $t) {
-				$t->stat = isset($posStat[$t->id]) ? implode(',', $posStat[$t->id]) : '0,0';
-				$t->save();				
 			}
 		}
     }
