@@ -16,18 +16,7 @@ class Thread extends ActiveRecord
      */	
 	public $items = array();
 	
-	
-	/**
-     * @var array Массив с id всех родительских разделов/сервисов
-     */
-	//public $root = array();
-	
-	// Директории для хранения контента приложения (сайта)
-	public $tmpPath; // для временных файлов
-	public $imgPath; // для хранения картинок
-	public $docPath; // для хранения документов
-	public $mediaPath; // для хранения медиафайлов
-	
+
 	/**
      * @var self Раздел по умолчанию
      */
@@ -51,18 +40,6 @@ class Thread extends ActiveRecord
 	public function __construct($config = array())
 	{
 		parent::__construct($config);
-
-		if (!empty($config['tmpPath']))
-			$this->tmpPath = $config['tmpPath'];
-		
-		if (!empty($config['imgPath']))
-			$this->imgPath = $config['imgPath'];
-		
-		if (!empty($config['docPath']))
-			$this->docPath = $config['docPath'];			
-		
-		if (!empty($config['mediaPath']))
-			$this->mediaPath = $config['mediaPath'];
 			
 		$this->tree = $this->getTree();
 		
@@ -91,7 +68,7 @@ class Thread extends ActiveRecord
 				} else			
 					$vname = $arr[0];
 				
-				// считаем разделы/сервисы одноуровнеными
+				// считаем разделы одноуровнеными
 				if ($vname)
 					if ($item = $this->getListByKey('vname', $vname))
 						$this->attributes = $item;		
@@ -132,57 +109,6 @@ class Thread extends ActiveRecord
 		} else
 			return $this->tree;
 	}
-
-	/**
-	 * Вся цепочка родительских id (до корневого раздела)
-	 * 
-	 * @param  $id          	id раздела, для которого получаем
-	 * @param  $return_self 	включая собственный id
-	 * @param  $return_zero 	включая корневой id (0)
-	 */
-	public function getParentArray($id, $return_self = false, $return_zero = false)
-	{
-		if (isset($this->tree[LANG])) {
-			$last_branch = end($this->tree[LANG]);
-			$p_list = $return_self ? array($id): array();
-			while ($id)
-				foreach ($this->tree[LANG] as $p_id => $sections)
-					if (isset($sections[$id]) || $sections == $last_branch) {
-						$p_list[] = $p_id;
-						$id = $p_id;
-						break;			
-					}
-			unset($p_list[count($p_list)-1]);
-			if (count($p_list) < 1) $p_list[0] = $id;
-			if ($return_zero) $p_list[] = 0;			
-			return array_values($p_list);
-		
-		} else
-			return $return_self ? array($id) : array();
-	}
-
-	/**
-	 * Полный виртуальный путь к разделу (/vname1/vname2/../)
-	 * 
-	 * @see	self::getParentArray()
-	 
-	public function getVPath($id = false)
-	{
-		$res = '/';
-		$id = $id ? $id : $this->id;
-		$arr = array_reverse($this->getParentArray($id, true, false));
-		
-		if ($this->tree) {
-			$p_id = 0;
-			foreach ($arr as $k => $id) {
-				$res .= $this->tree[LANG][$p_id][$id]['vname'].'/';
-				$p_id = $id;
-			}
-		}
-
-		return (LANG == DEF_LANG) ? $res : LANG.'/'.$res;
-	}
-	*/
 	
 	/**
 	 * Поиск разделов по занчению какого-либо атрибута
