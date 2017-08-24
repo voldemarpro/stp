@@ -239,64 +239,42 @@ class Thread extends ActiveRecord
 	
 	
     /**
-     * Email to Trader/admin
+     * Sending email to Trader/admin
      */		
-    public static function mailTo($email, $from, $subject, $body)
+    public static function sendmail($to, $from, $subject, $body)
     {
-		$pwdFile = \Yii::getAlias('@app/runtime/'.md5('mail@sotabank.com').'.dat');
-		if (!file_exists($pwdFile))
-			return false;
-		/*
-		require \Yii::getAlias('@app/vendor/swiftmailer/lib/swift_required.php');
+		$transport = \Swift_SmtpTransport::newInstance('smtp.gmail.com', 465, 'ssl')
+		  ->setUsername( Yii::$app->params['admin_email'] )
+		  ->setPassword( base64_decode( file_get_contents(\Yii::getAlias('@app/config/mkey.dat')) ) );
 
 		$mailer = new \yii\swiftmailer\Mailer;
 		$mailer->useFileTransport = false;
-		$mailer->setTransport(
-			\Yii::createObject([
-				//'class' => 'Swift_MailTransport',
-				'class' => 'Swift_SmtpTransport',
-				//'extraParams' => null
-				'host' => 'smtp.gmail.com',
-				'username' => 'clients@sotabank.com',
-				'password' => base64_decode( file_get_contents($pwdFile) ),
-				'port' => 465,
-				'encryption' => 'ssl'
-			])
-		);
-		
-		return $mailer->compose()
-			->setEncoder(\Swift_Encoding::getBase64Encoding())
+		$mailer->setTransport($transport);
+
+		$message = $mailer->compose()
+			//->setEncoder(\Swift_Encoding::getBase64Encoding())
 			->setFrom($from)
-			->setTo($email)
-			->setSubject($title)
-			->setHtmlBody($body)
-			->send();
-		*/
+			->setTo( ( $to ? $to : Yii::$app->params['admin_email'] ) )
+			->setSubject($subject);
 		
-		require \Yii::getAlias('@app/vendor/phpmailer/class.phpmailer.php');
+		$contentEncoderBase64 = new \Swift_Mime_ContentEncoder_Base64ContentEncoder();	
+		$headerEncoderBase64 = new \Swift_Mime_HeaderEncoder_Base64HeaderEncoder();
 		
-		$mailer = new \PHPMailer;
-		$mailer->IsSMTP();
-		$mailer->Host = 'smtp.gmail.com';
-		$mailer->SMTPAuth = true;
-		$mailer->Username = 'mail@sotabank.com';
-		$mailer->Password = base64_decode( trim(file_get_contents($pwdFile)) );
-		$mailer->Port = 465;
-		$mailer->SMTPSecure = 'ssl';
+		$headers = $message->getSwiftMessage()->getHeaders();
+		foreach (['subject', 'from', 'to'] as $name) {
+			$header = $headers->get($name);
+			$header->setCharset('utf-8');
+			//$header->setContentType('text/plain');
+			$header->setEncoder($headerEncoderBase64);
+		}			
 
-		$mailer->From = 'mail@sotabank.com';
-		$mailer->FromName = 'SOTA-1';
-		$mailer->AddAddress($email);
-
-		$mailer->IsHTML(true);
-
-		$mailer->Subject = $subject;
-		$mailer->Body    = $body;
+		$html = \Swift_MimePart::newInstance();
+		$html->setCharset('utf-8');
+		$html->setEncoder($contentEncoderBase64);
+		$html->setContentType('text/html');
+		$html->setBody($body);
+		$message->getSwiftMessage()->attach($html);
 		
-		$res = $mailer->Send();
-		
-		$mailer->ClearAddresses();
-
-		return $res;
+		return $message->send();
     }
 }
