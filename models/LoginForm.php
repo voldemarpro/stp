@@ -51,7 +51,7 @@ class LoginForm extends Model
             $user = $this->getUser();
 
             if (!$user || !$user->validatePwd($this->pwd))
-                $this->addError($attribute, Traider::ERR_AUTH_DATA);
+                $this->addError($attribute, Trader::ERR_AUTH_DATA);
         }
     }
 
@@ -76,7 +76,7 @@ class LoginForm extends Model
     public function getUser()
     {
         if ($this->_user === false) {
-            $this->_user = Traider::findBylogin($this->login);
+            $this->_user = Trader::findBylogin($this->login);
         }
 
         return $this->_user;

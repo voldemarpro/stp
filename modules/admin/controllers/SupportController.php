@@ -4,7 +4,7 @@ namespace app\modules\admin\controllers;
 use Yii;
 use app\modules\admin\components\MainController;
 use app\modules\admin\models\Param;
-use app\models\Traider;
+use app\models\Trader;
 use app\models\SupportTicket as ST;
 use yii\data\ActiveDataProvider;
 
@@ -31,7 +31,7 @@ class SupportController extends MainController
 		
 		return $this->render('index', [
 			'items' => $items,
-			'users' => Traider::find()->where(['id'=>array_unique($users)])->indexBy('id')->all(),
+			'users' => Trader::find()->where(['id'=>array_unique($users)])->indexBy('id')->all(),
 			'pagination'=>$provider->pagination
 		]);
     }

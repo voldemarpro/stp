@@ -1,6 +1,6 @@
 <?php
 	$user = \Yii::$app->user->identity;
-	$pp = \explode('|', \app\models\Traider::myAESdecrypt($user->passport));
+	$pp = \explode('|', \app\models\Trader::myAESdecrypt($user->passport));
 
 	if ($user->pay_card) {
 		$pay_card_splitted = \explode("\n", \chunk_split($user->pay_card, 4, "\n"));

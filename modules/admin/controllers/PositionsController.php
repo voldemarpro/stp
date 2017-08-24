@@ -4,7 +4,7 @@ namespace app\modules\admin\controllers;
 use Yii;
 use app\modules\admin\components\MainController;
 use app\modules\admin\models\Param;
-use app\models\Traider;
+use app\models\Trader;
 use app\models\Position;
 use app\models\Payout;
 use yii\data\ActiveDataProvider;
@@ -24,7 +24,7 @@ class PositionsController extends MainController
 					-3 => '`disabled` != 0'
 				];
 				if ($f != -3)
-					$query = Position::find()->innerJoin(Traider::tableName().' t', 'user_id = t.id')->where($sqlWhere[$f]);
+					$query = Position::find()->innerJoin(Trader::tableName().' t', 'user_id = t.id')->where($sqlWhere[$f]);
 				else
 					$query = Position::find()->where($sqlWhere[$f]);
 			} else {
@@ -56,7 +56,7 @@ class PositionsController extends MainController
 		
 		return $this->render('index', [
 			'items' => $items,
-			'users' => Traider::find()->where(['id'=>array_unique($users)])->indexBy('id')->all(),
+			'users' => Trader::find()->where(['id'=>array_unique($users)])->indexBy('id')->all(),
 			'pagination'=>$provider->pagination,
 			'filter'=>$f,
 			'date'=>$date
@@ -243,7 +243,7 @@ class PositionsController extends MainController
 		
 		if ($uid) {
 			$query = $query->andWhere("`user_id` = '".htmlspecialchars($uid)."'");
-			$user = Traider::findOne($uid);
+			$user = Trader::findOne($uid);
 			$starUsers = [];
 			if ($user) {
 				if ($user->opt == 1 || ($user->grade & 1024))
@@ -255,7 +255,7 @@ class PositionsController extends MainController
 		} else {
 			$user = false;
 			// admins and traders with risk buy-out
-			$starUsers = Traider::find()->where('`opt` = 1 OR (`grade` & 1024) != 0')->indexBy('id')->all();			
+			$starUsers = Trader::find()->where('`opt` = 1 OR (`grade` & 1024) != 0')->indexBy('id')->all();			
 			$positions = Position::find()->where("`open_time` >= ".date('Y-m-01', $dt)." && month(`open_time`) = ".intval($m))->all();		
 		}
 		

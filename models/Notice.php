@@ -10,7 +10,7 @@ class Notice extends ActiveRecord
 	/**
      * @var array recipients of the message associated with current record
      */	
-	public $traiders = [];
+	public $Traders = [];
 	
 	/**
      * @return string the name of the table associated with this ActiveRecord class.
@@ -42,11 +42,11 @@ class Notice extends ActiveRecord
 	}
 	
     /**
-     * Query to get all traiders for whom the current notice is created
+     * Query to get all Traders for whom the current notice is created
      */		
-	public function getTraiders()
+	public function getTraders()
     {
-       return $this->hasMany(Traider::className(), ['id'=>'user_id'])
+       return $this->hasMany(Trader::className(), ['id'=>'user_id'])
 				->viaTable('{{%user_notices}}', ['notice_id'=>'id']);
     }
 }

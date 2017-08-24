@@ -239,7 +239,7 @@ class Thread extends ActiveRecord
 	
 	
     /**
-     * Email to traider/admin
+     * Email to Trader/admin
      */		
     public static function mailTo($email, $from, $subject, $body)
     {

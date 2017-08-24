@@ -38,7 +38,7 @@ class NewsController extends MainController
     }
 
 	/**
-     * Saving traider attributes to DB
+     * Saving Trader attributes to DB
      */	
 	public function actionSave($id = 0)
     {

@@ -4,7 +4,7 @@ namespace app\modules\admin\controllers;
 use Yii;
 use app\modules\admin\components\MainController;
 use app\modules\admin\models\Param;
-use app\models\Traider;
+use app\models\Trader;
 use app\models\Request;
 use app\models\Payout;
 use yii\data\ActiveDataProvider;
@@ -47,7 +47,7 @@ class RequestsController extends MainController
 		
 		return $this->render('index', [
 			'items' => $items,
-			'users' => Traider::find()->where(['id'=>array_unique($users)])->indexBy('id')->all(),
+			'users' => Trader::find()->where(['id'=>array_unique($users)])->indexBy('id')->all(),
 			'pagination'=>$provider->pagination,
 			'filter'=>$for ? "u$for" : $f
 		]);
@@ -84,7 +84,7 @@ class RequestsController extends MainController
 			
 			if ($model->save()) {
 				if ($model->status != $statusBefore) {
-					$t = Traider::findOne($model->user_id);
+					$t = Trader::findOne($model->user_id);
 					
 					if ($model->status > 0) {
 						if (!$model->aux || $model->aux == 1) {

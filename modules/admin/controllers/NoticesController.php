@@ -4,7 +4,7 @@ namespace app\modules\admin\controllers;
 use Yii;
 use app\modules\admin\components\MainController;
 use app\modules\admin\models\Param;
-use app\models\Traider;
+use app\models\Trader;
 use app\models\Notice;
 use yii\data\ActiveDataProvider;
 
@@ -43,7 +43,7 @@ class NoticesController extends MainController
 		$users = [];
 		
 		if ($model->filter < 0)
-			$users = $model->getTraiders()->indexBy('id')->all();
+			$users = $model->getTraders()->indexBy('id')->all();
 
 		return $this->render('write', [
 			'model'		=> $model,
@@ -53,7 +53,7 @@ class NoticesController extends MainController
     }
 	
 	/**
-     * Saving traider attributes to DB
+     * Saving Trader attributes to DB
      */	
 	public function actionSave($id = 0)
     {
@@ -93,13 +93,13 @@ class NoticesController extends MainController
 				
 				} else {
 					if ($model->filter == 0) {
-						$t = Traider::find()->all();
+						$t = Trader::find()->all();
 						foreach ($t as $user)
 							$rows[] = [$model->id, $user->id];
 							
 					} else {
 						$where = [];
-						$query = Traider::find();
+						$query = Trader::find();
 						
 						if ($model->filter & 1)
 							$where[] = '(`grade` & 4) = 0';

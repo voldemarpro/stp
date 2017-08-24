@@ -4,7 +4,7 @@ namespace app\modules\admin\controllers;
 use Yii;
 use app\modules\admin\components\MainController;
 use app\modules\admin\models\Param;
-use app\models\Traider;
+use app\models\Trader;
 use yii\data\ActiveDataProvider;
 
 /**
@@ -28,14 +28,14 @@ class UsersController extends MainController
 				4 => '(`grade` & 2) = 0',
 				5 => '(`grade` & 1024) != 0'
 			];
-			$query = Traider::find()->where($sqlWhere[$f_i])->orderBy(['id' => SORT_ASC]);
+			$query = Trader::find()->where($sqlWhere[$f_i])->orderBy(['id' => SORT_ASC]);
 		
 		} elseif ($f && mb_strlen($f, 'utf-8') == 1) {
-			$query = Traider::find()->where("LEFT(`last_name`, 1) = '$f'")->orderBy(['grade'=>SORT_ASC, 'id' => SORT_ASC]);
+			$query = Trader::find()->where("LEFT(`last_name`, 1) = '$f'")->orderBy(['grade'=>SORT_ASC, 'id' => SORT_ASC]);
 		
 		} else {
 			$f = 0;
-			$query = Traider::find()->orderBy(['grade'=>SORT_ASC, 'id' => SORT_ASC]);
+			$query = Trader::find()->orderBy(['grade'=>SORT_ASC, 'id' => SORT_ASC]);
 		}
 		
 		$provider = new ActiveDataProvider([
@@ -59,12 +59,12 @@ class UsersController extends MainController
 		return $this->render('/write', [
 			'model'		=> $model,
 			'title'		=> $model->isNewRecord ? 'Новый пользователь' : ($model->last_name.' '.$model->first_name.' '.$model->mid_name),
-			'attributes'=> ['pwd' => $model->pwd ? Traider::myAESdecrypt($model->pwd) : ''],
+			'attributes'=> ['pwd' => $model->pwd ? Trader::myAESdecrypt($model->pwd) : ''],
 		]);
     }
 	
 	/**
-     * Saving traider attributes to DB
+     * Saving Trader attributes to DB
      */	
 	public function actionSave($id = 0)
     {
@@ -83,7 +83,7 @@ class UsersController extends MainController
 			elseif ($model->credit == 0)
 				$model->credit == (int)$model->balance;
 			
-			$model->pwd = Traider::myAESencrypt($model->pwd);
+			$model->pwd = Trader::myAESencrypt($model->pwd);
 
 			if ($model->save())
 				return 1;
@@ -110,10 +110,10 @@ class UsersController extends MainController
 	private function getBaseModel($id = 0)
     {
 		if ($id = intval($id))
-			$model = Traider::findOne($id);
+			$model = Trader::findOne($id);
 		
 		if (empty($model)) {
-			$model = new Traider;
+			$model = new Trader;
 			$model->scenario = 'insert';
 			$model->start_date = date('Y-m-d');
 			$model->end_date = date('Y-m-d', time() + 90*24*60*60);
@@ -140,7 +140,7 @@ class UsersController extends MainController
 		if ($term) {
 			$results = array();
 			$term = htmlspecialchars($term);
-			if ($items = Traider::find()->where("`last_name` LIKE '%$term%' OR `first_name` LIKE '%$term%'")->limit(20)->all()) {
+			if ($items = Trader::find()->where("`last_name` LIKE '%$term%' OR `first_name` LIKE '%$term%'")->limit(20)->all()) {
 				foreach ($items as $it) {
 					$mid_name = $it->mid_name ? " $it->mid_name" : '';
 					$results[] = array('label'=>"{$it->last_name} {$it->first_name}$mid_name", 'id'=>$it->id);
@@ -153,7 +153,7 @@ class UsersController extends MainController
 
 	public function actionGetone($id = 0)
 	{
-		if ($item = Traider::findOne($id))
+		if ($item = Trader::findOne($id))
 			return $this->renderPartial('item', ['item'=>$item]);
 	}
 }

@@ -4,7 +4,7 @@ namespace app\modules\admin\controllers;
 use Yii;
 use app\modules\admin\components\MainController;
 use app\modules\admin\models\Param;
-use app\models\Traider;
+use app\models\Trader;
 use app\models\Message;
 use yii\data\ActiveDataProvider;
 
@@ -49,7 +49,7 @@ class SmsController extends MainController
 		return $this->render('write', [
 			'model'	=> $model,
 			'title'	=> 'Новое сообщение',
-			'users' => $model->users ? Traider::find()->where(['id'=>explode(',', $model->users)])->indexBy('id')->all() : []
+			'users' => $model->users ? Trader::find()->where(['id'=>explode(',', $model->users)])->indexBy('id')->all() : []
 		]);
     }
 	
@@ -98,16 +98,16 @@ class SmsController extends MainController
 				{
 					if ($model->filter == -1) {
 						
-						$users = Traider::find()->where(['id'=>explode(',', $model->users)])->all();
+						$users = Trader::find()->where(['id'=>explode(',', $model->users)])->all();
 					
 					} else {
 						if ($model->filter == 0) {
 							
-							$users = Traider::findAll();
+							$users = Trader::findAll();
 						
 						} else {
 							$where = [];
-							$query = Traider::find();
+							$query = Trader::find();
 							
 							if ($model->filter & 1)
 								$where[] = '(`grade` & 4) = 0';

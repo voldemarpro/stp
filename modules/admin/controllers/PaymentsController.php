@@ -4,12 +4,12 @@ namespace app\modules\admin\controllers;
 use Yii;
 use app\modules\admin\components\MainController;
 use app\modules\admin\models\Param;
-use app\models\Traider;
+use app\models\Trader;
 use app\models\Payout;
 use yii\data\ActiveDataProvider;
 
 /**
- * Working with money transfers to/from traider
+ * Working with money transfers to/from Trader
  */
 class PaymentsController extends MainController
 {
@@ -42,7 +42,7 @@ class PaymentsController extends MainController
 		return $this->render('index', [
 			'items' => $items,
 			'pagination'=>$provider->pagination,
-			'users'=>Traider::find()->where(['id'=>array_unique($users)])->indexBy('id')->all(),
+			'users'=>Trader::find()->where(['id'=>array_unique($users)])->indexBy('id')->all(),
 			'filter'=>$f,
 			'for'=>$for
 		]);
@@ -62,7 +62,7 @@ class PaymentsController extends MainController
     }
 
 	/**
-     * Saving traider attributes to DB
+     * Saving Trader attributes to DB
      */	
 	public function actionSave($id = 0)
     {

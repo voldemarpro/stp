@@ -3,7 +3,7 @@ namespace app\controllers;
 
 use Yii;
 use app\components\MainController;
-use app\models\Traider;
+use app\models\Trader;
 
 /**
  * Настройки учетной записи
@@ -40,7 +40,7 @@ class SettingsController extends MainController
 				if (!trim($params['passport'], '|'))
 					unset($params['passport']);
 				else
-					$params['passport'] = Traider::myAESencrypt($params['passport']);
+					$params['passport'] = Trader::myAESencrypt($params['passport']);
 			} else
 				unset($params['passport']);
 				
@@ -90,7 +90,7 @@ class SettingsController extends MainController
 				unset($params['pay_bank']);
 			
 			if (!empty($params['pwd']) && trim($params['pwd']))
-				$params['pwd'] = Traider::myAESencrypt(trim($params['pwd']));
+				$params['pwd'] = Trader::myAESencrypt(trim($params['pwd']));
 			else
 				$params['pwd'] = $model->pwd;
 			

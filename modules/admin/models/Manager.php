@@ -1,7 +1,7 @@
 <?php
 namespace app\modules\admin\models;
 
-class Manager extends \app\models\Traider
+class Manager extends \app\models\Trader
 {
 	/**
      * @return array Developer attributes

@@ -67,8 +67,8 @@ $cssAttr = ['', ' class="inactive"'];
 			echo '
 				<tr', $cssAttr[$it->blocked], '>
 					<td>
-						<a title="', \app\models\Traider::formatName($it, false), '" href="/', yii\helpers\Url::to("{$this->context->module->id}/{$this->context->id}/write/$it->id"), '">
-							', ($it->last_name && $it->first_name ? (\app\models\Traider::formatName($it)) : ('+7 '.substr($it->phone, 0, 3).' '.substr($it->phone, 3))), '
+						<a title="', \app\models\Trader::formatName($it, false), '" href="/', yii\helpers\Url::to("{$this->context->module->id}/{$this->context->id}/write/$it->id"), '">
+							', ($it->last_name && $it->first_name ? (\app\models\Trader::formatName($it)) : ('+7 '.substr($it->phone, 0, 3).' '.substr($it->phone, 3))), '
 						</a>
 					</td>
 					<td>', ($it->opt ? '&#9733;' :''), '</td>

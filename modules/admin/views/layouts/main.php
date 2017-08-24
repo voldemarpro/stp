@@ -3,7 +3,7 @@
 	$user = \Yii::$app->user->identity;
 	
 	$count = [];
-	$count['users'] = \app\models\Traider::find()->where('(`grade` & 1024) = 0')->count();
+	$count['users'] = \app\models\Trader::find()->where('(`grade` & 1024) = 0')->count();
 	$count['requests'] = \app\models\Request::find()->where('`status` = 0')->count();
 	$count['support'] = \app\models\SupportTicket::find()->where('`response` IS NULL OR `response` = ""')->count();
 ?>

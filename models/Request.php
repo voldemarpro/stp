@@ -62,9 +62,9 @@ class Request extends ActiveRecord
         ];
     }
 	
-    public function getTraider()
+    public function getTrader()
     {
-        return $this->hasOne(Traider::className(), ['id' => 'user_id']);
+        return $this->hasOne(Trader::className(), ['id' => 'user_id']);
     }
 
 }

@@ -191,7 +191,7 @@ class Param extends \yii\db\ActiveRecord
 			case 17:
 				if (is_array($param) && count($param) == 4 && implode('', $param)) {
 					$val = implode('|', $param);
-					$val = \app\models\Traider::myAESencrypt($val);
+					$val = \app\models\Trader::myAESencrypt($val);
 				} else
 					$val = null;
 				break;

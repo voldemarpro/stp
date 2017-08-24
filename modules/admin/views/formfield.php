@@ -377,7 +377,7 @@ foreach ($fields as $field)
 			break;
 			
 		case 17:	
-			$pp = $value ? \explode('|', \app\models\Traider::myAESdecrypt($value)) : [];
+			$pp = $value ? \explode('|', \app\models\Trader::myAESdecrypt($value)) : [];
 			echo '
 			<div class="form-group">
 				<label for="phone">', $label, '</label>

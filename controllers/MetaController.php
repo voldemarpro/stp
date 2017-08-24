@@ -5,7 +5,7 @@ use Yii;
 use yii\web\Controller;
 use app\models\Quotation;
 use app\models\News;
-use app\models\Traider;
+use app\models\Trader;
 use app\models\Position;
 use app\models\Payout;
 
@@ -199,7 +199,7 @@ class MetaController extends Controller
 				$posGrouped[$pos->user_id] = $pos;
 			
 			// трейдеры, имеющие незакрытые позиции
-			$traiders = Traider::find()
+			$Traders = Trader::find()
 				->where(['id'=>array_keys($posGrouped)])
 				->indexBy('id')
 				->all();
@@ -212,7 +212,7 @@ class MetaController extends Controller
 			foreach ($posGrouped as $pos) {
 				$payout = new Payout;
 				
-				$user = $traiders[$pos->user_id];
+				$user = $Traders[$pos->user_id];
 
 				$pos->close_quot = $pos->type < 0 ? $quot['ask'] : $quot['bid'];
 				$pos->close_time = date('Y-m-d H:i:s', Yii::$app->params['close_time']);
@@ -294,7 +294,7 @@ class MetaController extends Controller
 				$users[] = $it->user_id;
 			
 			// трейдеры
-			$traiders = Traider::find()
+			$Traders = Trader::find()
 				->where(['id'=>array_unique($users)])
 				->indexBy('id')
 				->all();
@@ -303,7 +303,7 @@ class MetaController extends Controller
 				
 			foreach ($items as $it) {
 				
-				$user = $traiders[$it->user_id];
+				$user = $Traders[$it->user_id];
 				
 				if ($user->balance == $user->credit)
 					$user->balance += $it->amount;
@@ -357,17 +357,17 @@ class MetaController extends Controller
     public function actionVoid()
     {
 		// трейдеры
-		$traiders = Traider::find()
+		$Traders = Trader::find()
 			->where('`debit` < 0')
 			->indexBy('id')
 			->all();
 		
-		if ($traiders) {
+		if ($Traders) {
 			
 			$sms = new \app\components\Sms;
 			$phones = [];
 			
-			foreach ($traiders as $t) {
+			foreach ($Traders as $t) {
 				$payout = new Payout;
 				$payout->sum = abs($t->debit);
 				$payout->type = 0;
@@ -403,11 +403,11 @@ class MetaController extends Controller
     public function actionSummarize()
     {
 		// трейдеры
-		$traiders = Traider::find()
+		$Traders = Trader::find()
 			->indexBy('id')
 			->all();
 		
-		if ($traiders) {
+		if ($Traders) {
 			
 			// сделки
 			$positions = Position::find()
@@ -425,7 +425,7 @@ class MetaController extends Controller
 				}
 			}
 			
-			foreach ($traiders as $t) {
+			foreach ($Traders as $t) {
 				$t->stat = isset($posStat[$t->id]) ? implode(',', $posStat[$t->id]) : '0,0';
 				$t->save();				
 			}
