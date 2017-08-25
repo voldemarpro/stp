@@ -138,7 +138,7 @@ class ThreadController extends Controller
 					->one();
 		if ($p) {
 			if ($p->close_time === null) {
-				$tradeQuot = $p->type > 0 ? $s['quotes']['bid'] ? $s['quotes']['ask'];
+				$tradeQuot = $p->type > 0 ? $s['quotes']['bid'] : $s['quotes']['ask'];
 				$result = $p->type * ($tradeQuot - $p->open_quot) * $p->volume;	
 			} else
 				$result = $p->result;
