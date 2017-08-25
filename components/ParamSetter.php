@@ -40,10 +40,7 @@ class ParamSetter implements BootstrapInterface {
 		$dtz = new \DateTimeZone('Europe/Moscow');
 		$dt = new \DateTime('now', $dtz);
 
-		Yii::$app->view->params['formatter'] = \Yii::$app->formatter;
-		Yii::$app->view->params['dtz'] = $dtz;
-		Yii::$app->view->params['dto'] = $dt->getOffset();
-		Yii::$app->params['dto'] = $dt->getOffset();
+		define('DTIME_OFFSET', $dt->getOffset());		
    }
 
 }
