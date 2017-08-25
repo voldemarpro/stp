@@ -4,13 +4,22 @@ namespace app\models;
 use Yii;
 use yii\db\Command;
 use yii\db\ActiveRecord;
+use yii\behaviors\AttributeBehavior;
 use app\models\Contract;
+
 
 class Position extends ActiveRecord
 {
 	const BUY_ID = 1;
 	const SELL_ID = -1;
 	
+	// Formatted date-time props to be filled via behaviour
+	public $fopen_time;
+	public $fclose_time;
+	public $fdate;
+	public $fopen_dtime;
+	public $fclose_dtime;	
+
 	public static $types = [1 => 'Покупка', -1 => 'Продажа'];
 	
 	/**
@@ -129,6 +138,41 @@ class Position extends ActiveRecord
 			return false;
 		else
 			return $p;
+	}
+	
+	public function behaviors()
+	{
+		return [
+			[
+				'class' => AttributeBehavior::className(),
+				'attributes' => [
+					ActiveRecord::EVENT_AFTER_FIND => 'fopen_time'
+				],
+				'value' => function ($event) {
+					return Yii::$app->formatter->asDate(strtotime($event->sender->open_time) + DTIME_OFFSET, "HH:mm");
+				},
+			],
+			[
+				'class' => AttributeBehavior::className(),
+				'attributes' => [
+					ActiveRecord::EVENT_AFTER_FIND => 'fclose_time'
+				],
+				'value' => function ($event) {
+					return $event->sender->close_time
+							? Yii::$app->formatter->asDate(strtotime($event->sender->close_time) + DTIME_OFFSET, "HH:mm")
+							: '';
+				},
+			],
+			[
+				'class' => AttributeBehavior::className(),
+				'attributes' => [
+					ActiveRecord::EVENT_AFTER_FIND => 'fdate'
+				],
+				'value' => function ($event) {
+					return Yii::$app->formatter->asDate(strtotime($event->sender->open_time) + DTIME_OFFSET, "dd MMM");
+				},
+			]
+		];
 	}
 }
 ?>
