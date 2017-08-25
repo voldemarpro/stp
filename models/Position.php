@@ -130,7 +130,7 @@ class Position extends ActiveRecord
 				->where('`user_id` = '.Yii::$app->user->id)
 				->andWhere('DATE(`open_time`) = CURDATE()')
 				->one();
-		if (!$p || !$allowTrade || (time() - $p->open_time) < 600)	
+		if (!$p || !$allowTrade || (time() - $p->open_time) < 600 || $p->close_time)	
 			return false;
 		else
 			return $p;
