@@ -41,5 +41,26 @@ class Tariff extends ActiveRecord
     {
         return $this->hasOne(Trader::className(), ['tariff_id' => 'id']);
     }
+	
+    /**
+	 * Computes share of successful deals
+	 *
+	 * @see \app\models\Position
+	 *
+     * @param array $positions 
+     * @param int $gainThreshold 
+     * 
+     * @return array
+     */
+	public function getProfitShare($positions = [], $gainThreshold = 0) {
+		$stat = ['total'=>count($positions), 'success'=>0];
+		
+		foreach ($positions as $p) {
+			if ($p->result >= $gainThreshold)
+				$stat['success']++;
+		}
+		
+		return $stat;
+	}
 }
 ?>
