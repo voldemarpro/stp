@@ -62,8 +62,7 @@ class Position extends ActiveRecord
 			return false;
 		else
 			$q = $q[ STP_VRS ];
-		
-		$this = new (self::className());
+
 		$this->type = $type;
 		$this->open_quot = $this->type > 0 ? $q['ask'] : $q['bid'];
 		$this->open_time = date('Y-m-d H:i:s');
