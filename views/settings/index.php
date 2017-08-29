@@ -1,6 +1,5 @@
 <?php
 	$user = \Yii::$app->user->identity;
-	$pp = \explode('|', \app\models\Trader::myAESdecrypt($user->passport));
 
 	if ($user->pay_card) {
 		$pay_card_splitted = \explode("\n", \chunk_split($user->pay_card, 4, "\n"));
@@ -21,7 +20,7 @@
 		
 		<input type="hidden" name="<?php echo \Yii::$app->getRequest()->csrfParam ?>" value="<?php echo \Yii::$app->getRequest()->getCsrfToken() ?>" />
 		
-		<h2>Паспортные данные</h2>	
+		<h2>Личные данные</h2>	
 		<div class="form-group required">
 			<label for="last_name">Фамилия<sup class="grey">*</sup></label>
 			<input id="last_name" type="text" class="form-control input-lg" name="last_name" value="<?php echo $user->last_name ?>" />
@@ -59,47 +58,6 @@
 			});
 		</script>										
 		
-		<div class="form-group row">
-			<div class="col-xs-4 col-sm-4 col-md-3 col-lg-3">
-				<label for="issue" >Серия</label>
-				<input id="issue" type="text" class="form-control input-lg" maxlength="4" name="passport" value="<?php echo !empty($pp[0]) ? $pp[0] : '' ?>" />
-			</div>
-			<div class="col-xs-4 col-sm-4 col-md-3 col-lg-3">
-				<label for="number">Hомер</label>
-				<input id="number" type="text" class="form-control input-lg" maxlength="6" name="passport" value="<?php echo !empty($pp[1]) ? $pp[1] : '' ?>" />
-			</div>
-			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-				<div class="form-control-feedback"></div>
-			</div>
-		</div>
-		
-		<div class="form-group row">
-			<label class="col-xs-12 col-sm-12 col-md-12 col-lg-12" for="issue_date">Дата выдачи</label>
-			<div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-				<input id="issue_date" type="text" name="passport" maxlength="10" class="form-control input-lg" name="passport" value="<?php echo !empty($pp[2]) ? $pp[2] : '' ?>" />
-			</div>
-			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-				<div class="form-control-feedback"></div>
-			</div>
-		</div>
-		<script>
-			$('#issue_date').datepicker({
-				hideIfNoPrevNext: true,
-				changeYear: true,
-				changeMonth: true,
-				showWeek: false,
-				firstDay: 1,
-				yearRange: '1970:<?php echo date('Y') ?>',
-				dateFormat: 'dd/mm/yy'
-			});
-		</script>
-		
-		<div class="form-group">
-			<label for="issue_service">Кем выдан</label>
-			<input id="issue_service" type="text" class="form-control input-lg" name="passport" value="<?php echo !empty($pp[3]) ? $pp[3] : '' ?>" />
-			<div class="form-control-feedback"></div>
-		</div>
-		
 		<br/>
 		
 		<h2>Контактная информация</h2>	
@@ -112,8 +70,8 @@
 				<?php if ($user->grade & pow(2, 3)) echo '<span class="input-ok glyphicon glyphicon-ok"></span>' ?>
 			</div>
 
-			<div style="margin-top: 6px" class="text-right">
-				<button class="btn btn-sm btn-success" onclick="$(this).prop({disabled: true}); $('#phone').prop({disabled: false}).focus()">Изменить</button>
+			<div style="margin-top: 6px" class="text-left">
+				<a href="" style="color:green" onclick="$(this).prop({disabled: true}); $('#phone').prop({disabled: false}).focus(); return;">Изменить</a>
 			</div>
 			
 			<div class="form-control-feedback"></div>
@@ -178,11 +136,16 @@
 			</div>
 		</div>';
 		
-		// Изменение пароля только для проверенных трейдеров
-		if (Yii::$app->user->identity->grade && 4) echo '
+		echo '
 		<br/><br/>
 		
 		<div class="form-group row">
+			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+				<div class="note" style="width:auto">
+					<h4 class="text-uppercase">СОГЛАШЕНИЕ</h4>
+					<p class="small">', trim( str_replace("\r\n", '</p><p class="small">', \Yii::$app->params['privacy_terms']) ) , '</p>
+				</div>
+			</div>			
 			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
 				<div class="checkbox">
 					<label>
@@ -192,7 +155,7 @@
 			</div>
 			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
 				<div class="form-control-feedback"></div>
-			</div>			
+			</div>
 		</div>';
 
 		?> 
@@ -214,7 +177,6 @@
 			params['phone'] = this.value;
 			params['crc'] = '';
 		});
-		
 		$('#profile-form').submit(function(e) {
 			var formValid = true;
 			var form = this;
@@ -229,8 +191,8 @@
 					$.get('/settings/confirm', {phone: params['phone']} )
 					 .done(function(resp) {
 						if (parseInt(resp)) {
-							STP.dialog.open('#sms_box');
-							$('#sms_box').find('.btn-success').click(function(e) {
+							STP.dialog.open('#popup-numaber');
+							$('#popup-numaber').find('.btn-success').click(function(e) {
 								delete params['phone'];
 								$('[name=phone]').filter(':hidden').val(params['phone']);
 								$('#phone').prop({disabled: true});
@@ -283,7 +245,12 @@
 							resp = $.parseJSON(resp);
 							STP.dialog.close();
 							for (var key in resp)
-								$(form).find('[name=' + key + ']').parents('.form-group').addClass('has-error').addClass('has-feedback').find('.form-control-feedback').text(resp[key].substr(0,40));
+								$(form).find('[name=' + key + ']')
+									.parents('.form-group')
+									.addClass('has-error')
+									.addClass('has-feedback')
+									.find('.form-control-feedback')
+									.text(resp[key].substr(0,40));
 						} catch (e) {
 							console.log(resp);
 							STP.dialog.showStatus($.trim(resp) ? resp : 'Произошла ошибка');
@@ -296,13 +263,7 @@
 			}
 		});
 	}
-	$(document).ready(function() {
-		$('#stp-text h3').text('Соглашение');
-		$('#stp-text').find('div.small').html('<p><?php echo trim( str_replace("\r\n", '</p><p>', \Yii::$app->params['privacy_terms']) ) ?></p>');		
-		$('#privacy-check').click(function() {
-			$('#profile-form :submit').prop({disabled: !this.checked});
-			if (this.checked)
-				window.STP.dialog.open('#stp-text');
-		});	
-	});
+	$('#privacy-check').click(function() {
+		$('#profile-form :submit').prop({disabled: !this.checked});
+	});	
 </script>
