@@ -13,7 +13,11 @@ class HistoryController extends MainController
     public function actionIndex()
     {
         return $this->render('index', [
-            'items' => Position::find()->where('`user_id`= '.\Yii::$app->user->id)->andWhere('`disabled` = 0')->orderBy('`id` DESC')->limit(30)->all()
+            'items' => Position::find()
+						->where('`user_id`= '.\Yii::$app->user->id)
+						->orderBy('`id` DESC')
+						->limit(24)
+						->all()
         ]);
     }
 }

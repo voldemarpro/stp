@@ -1,55 +1,51 @@
-<div class="col-xs-12 col-sm-12 col-md-8 col-lg-7">
+<div class="col-xs-12 col-sm-12 col-md-12">
 
 	<h1><?php echo \Yii::$app->thread->title ?></h1>
+	
+</div>
+
 
 	<?php
+	
+	$symArrOpen = [-1=>'icon-buy green', 1=>'icon-sell red'];
+	$symArrClose = [-1=>'icon-sell', 1=>'icon-buy'];
+	$curr = STP_VRS == 1 ? '₽' : '$';
 	
 	if (count($items))
 	{
 		foreach ($items as $it)
 		{	
 			echo '
-			<div class="table-responsive">
-				
-				<table class="table table-hover table-striped">
-					<caption class="text text-left"><i>', $this->params['formatter']->asDate(date('Y-m-d', strtotime($it->open_time) + $this->params['dto']), "dd MMMM ''yy"), '</i></caption>
-					<thead>
-						<tr>
-							<th width="60">Время</th>
-							<th width="10%">Операция</th>
-							<th width="15%">Сумма $</th>
-							<th width="13%">Цена <small class="glyphicon glyphicon-ruble"></small></th>
-							<th width="20%">Итог <small class="glyphicon glyphicon-ruble"></small></th>
-							<th>Комментарий</th>
-						</tr>
-					</thead>
-					<tbody>								
-						<tr>
-							<td>', \date('H:i', \strtotime($it['open_time']) + $this->params['dto']), '</td>
-							<td>П', \mb_substr(app\models\Position::$types[$it->type], 1, null, 'utf-8'), '</td>
-							<td>', $it->open_sum, '</td>
-							<td>', \number_format($it->open_quot, 2), '</td>
-							<td></td>
-							<td></td>
-						</tr>';
-						
-						if ($it['close_time']) echo '
-						<tr>
-							<td>', \date('H:i', \strtotime($it['close_time']) + $this->params['dto']), '</td>
-							<td>П', \mb_substr(app\models\Position::$types[-$it->type], 1, null, 'utf-8'), '</td>
-							<td>', $it->open_sum, '</td>
-							<td>', \number_format($it->close_quot, 2), '</td>
-							<td>', (!$it->result ? '+ ' : \app\models\Position::formatSign($it->result)), \number_format(abs($it->result), 2, '.', ' '), '</td>
-							<td>', $it->comment, '</td>
-						</tr>';
+			<div class="col-xs-12 col-sm-12 col-md-6 col-lg-4">	
+				<dl class="dl-horizontal item-frame">
+					<dt>Дата</dt>
+					<dd>'.$it->fdate.'</dd>
+					
+					<dt>Объем</dt>
+					<dd>'.$it->volume.'</dd>
+					
+					<dt>Открытие</dt>
+					<dd><i class="' . $symArrOpen[$it->type] . '"></i> '.$it->fopen_time.' по ' . number_format($it->open_quot, 2) . '</dd>
+					
+					<dt>Закрытие</dt>
+					<dd>'; 
+						if ($it->close_time) echo '<i class="' . $symArrClose[$it->type] . '"></i> '.$it->fclose_time.' по ' . number_format($it->close_quot, 2);
+						else echo '&ndash;'; 
+					echo '
+					</dd>
+					
+					<dt>Результат '.$curr.'</dt>
+					<dd>'; 
+						if ($it->close_time) echo '<span class="monosign">'.($it->result >= 0 ? '+' : '-').'</span>' . number_format(abs($it->result), 2, '.', ' ');
+						else echo '&ndash;'; 
+					echo '
+					</dd>';
 						
 			echo '
-					</tbody>
-				</table>
-			
+				</dl>
 			</div>';
 		
 		}
 	}
 	?> 
-</div>	
+</div>
