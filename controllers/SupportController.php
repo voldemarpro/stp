@@ -21,33 +21,43 @@ class SupportController extends MainController
 		return $arr;
     }    
 
-	public function actionIndex()
+	public function actionList()
     {
-        return $this->render('index', [
-           'items' => SupportTicket::find()->where('`user_id` = '.Yii::$app->user->id)->orderBy('`date_time` DESC')->limit(5)->all()
-        ]);
+        $oitems = SupportTicket::find()
+			->where('`user_id` = '.Yii::$app->user->id)
+			->orderBy('`date_time` DESC')
+			->limit(3)
+			->all();
+		$items = [];
+		foreach ($oitems as $i=>$oi) {
+			$items[$i] = $oi->toArray();
+			$items[$i]['date_time'] = Yii::$app->formatter->asDate(strtotime($items[$i]['date_time']) + DTIME_OFFSET, "EE, d MMMM HH:mm") . " MSK";
+			if ($items[$i]['updated'])
+				$items[$i]['updated'] = Yii::$app->formatter->asDate(strtotime($items[$i]['updated']) + DTIME_OFFSET, "EE, d MMMM HH:mm") . " MSK";
+		}	
+		return json_encode($items);
     }
 	
-    public function actionPost()
+    public function actionSend()
     {
-		if (count($_POST)) {
-			$itemExists = SupportTicket::find()->where('`user_id` = '.Yii::$app->user->id)->andWhere('`response` IS NULL OR `response` = ""')->one();
-			if ($itemExists)
-				return '{"error":"У вас есть незакрытое обращение"}';
-				
-			$model = new SupportTicket();
-			$params = Yii::$app->request->post();
-			$params['user_id'] = Yii::$app->user->id;
-			$params['date_time'] = \date('Y-m-d H:i:s');
+		$itemExists = SupportTicket::find()
+						->where('`user_id` = '.Yii::$app->user->id)
+						->andWhere('`response` IS NULL OR `response` = ""')
+						->one();
+		if ($itemExists)
+			return '-1';
 			
-			if ($model->load($params, '')) {
-				if ($model->save())
-					return $this->renderPartial('index', [
-					   'items' => SupportTicket::find()->where('`user_id` = '.Yii::$app->user->id)->orderBy('`date_time` DESC')->limit(5)->all()
-					]);
-				else
-					return \json_encode($model->firstErrors, JSON_FORCE_OBJECT);
-			}
+		$model = new SupportTicket();
+		
+		$params = Yii::$app->request->get();
+		$params['user_id'] = Yii::$app->user->id;
+		$params['date_time'] = \date('Y-m-d H:i:s');
+		
+		if ($model->load($params, '')) {
+			if ($model->save())
+				return $this->actionList();
+			else
+				return json_encode($model->firstErrors);
 		}
-    }
+	}
 }
