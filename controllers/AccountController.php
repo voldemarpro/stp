@@ -25,7 +25,11 @@ class AccountController extends MainController
 	public function actionIndex()
     {
         return $this->render('index', [
-           'items' => MoneyTransfer::find()->where('`user_id` = '.Yii::$app->user->id)->orderBy('`date` DESC')->limit(30)->all()
+           'items' => MoneyTransfer::find()
+					   ->where('`user_id` = '.Yii::$app->user->id)
+					   ->orderBy('`date_time` DESC')
+					   ->limit(18)
+					   ->all()
         ]);
     }
 	
