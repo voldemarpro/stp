@@ -25,7 +25,11 @@ class AccountController extends MainController
 	public function actionIndex()
     {
         return $this->render('index', [
-           'items' => MoneyTransfer::find()->where('`user_id` = '.Yii::$app->user->id)->orderBy('`date` DESC')->limit(30)->all()
+           'items' => MoneyTransfer::find()
+					   ->where('`user_id` = '.Yii::$app->user->id)
+					   ->orderBy('`date_time` DESC')
+					   ->limit(18)
+					   ->all()
         ]);
     }
 	
@@ -43,9 +47,9 @@ class AccountController extends MainController
 			$params['date_time'] = \date('Y-m-d H:i:s');
 			$params['amount'] = (float)$params['amount'];
 			
-			if (\Yii::$app->params['payout_minimum'] > $params['amount'])
-				return '{"amount": "От 500 руб"}';
-			elseif (\Yii::$app->user->identity->debit < $params['amount'])
+			/*if (\Yii::$app->params['payout_minimum'] > $params['amount'])
+				return '{"amount": "От 500 руб"}';*/
+			if (\Yii::$app->user->identity->debit < $params['amount'])
 				return '{"amount": "Недостаточно средств"}';
 			
 			if (!empty($params['aux'])) {
@@ -66,7 +70,7 @@ class AccountController extends MainController
 						$body = '<p>' . (Request::$types[$rt]) . ', ' . (number_format($model->amount, 2, '.', ' ')) . '<br/>';
 						$body .= "<b>{$u->last_name} {$u->first_name} {$u->mid_name}</b></p>";
 						//$from = [\Yii::$app->params['admin_email'] => 'SOTA-1'];
-						\app\components\Thread::mailTo(\Yii::$app->params['admin_email'], '', $title, $body);
+						\app\components\Thread::sendmail(Yii::$app->params['admin_email'], '', $title, $body);
 					}
 					
 					return '1';
