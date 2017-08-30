@@ -25,11 +25,11 @@
 					<dd>'.$it->volume.'</dd>
 					
 					<dt>Открытие</dt>
-					<dd><i class="' . $symArrOpen[$it->type] . '"></i> '.$it->fopen_time.' по ' . number_format($it->open_quot, 2) . '</dd>
+					<dd><i class="' . $symArrOpen[$it->type] . '"></i> в '.$it->fopen_time.' по ' . number_format($it->open_quot, 2) . '</dd>
 					
 					<dt>Закрытие</dt>
 					<dd>'; 
-						if ($it->close_time) echo '<i class="' . $symArrClose[$it->type] . '"></i> '.$it->fclose_time.' по ' . number_format($it->close_quot, 2);
+						if ($it->close_time) echo '<i class="' . $symArrClose[$it->type] . '"></i> в '.$it->fclose_time.' по ' . number_format($it->close_quot, 2);
 						else echo '&ndash;'; 
 					echo '
 					</dd>
