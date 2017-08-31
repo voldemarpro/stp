@@ -1,6 +1,7 @@
 <?php 
 	$this->title = \Yii::$app->name . ' - '.(\Yii::$app->thread->title ? \Yii::$app->thread->title : $this->title);
 	
+	$summary = $this->params['summary'];
 	$user = \Yii::$app->user->identity;
 	$formatter = \Yii::$app->formatter;
 	$dtz = new \DateTimeZone('Europe/Moscow');
@@ -55,11 +56,11 @@
 		<script>
 			var config = {
 				timeOrigin: new Date('<?php echo \gmdate('Y-m-d\TH:i:sP') ?>'),
-				timeOffset: <?php echo ($dtz->getOffset($date))/60 ?>,
-				allowTrade: <?php echo 1 ?> 
+				timeOffset: <?php echo DTIME_OFFSET/60 ?>,
+				allowTrade: <?php echo $summary['session']['allowTrade'] ?> 
 			}
 		</script>
-		<!--<script type="text/javascript" src="/js/stp.js?x=<?php echo filemtime(Yii::getAlias('@app/web/js/stp.js')) ?>"></script>-->
+		<script type="text/javascript" src="/js/stp.js?x=<?php echo filemtime(Yii::getAlias('@app/web/js/stp.js')) ?>"></script>
 
 		<style>	
 			input, select, button, textarea {
@@ -78,9 +79,17 @@
 			h2 > span {
 				display: inline-block;
 				vertical-align: middle;				
+			}
+			h3 {
+				font-family: 'PT Sans Caption';
+				font-size: 20px;
+				font-weight: normal;
 			}			
 			h3 + .grey {
 				font-family: 'PT Sans Caption';
+			}
+			h3 + p {
+				font-size: 1.3em;
 			}
 
 			hr + .small {
@@ -127,15 +136,43 @@
 			}
 			.icon-sell::before {
 				content: '▼';
+			}
+			.btn-buy, .btn-buy:active, .btn-buy:focus, .btn-buy:active:focus {
+				color: #4CAF50;
+				background-color: inherit;
+				border: 1px solid #4CAF50;
+				font-size: 16px;
+				font-weight: bold;
+				outline: none;
+			}
+			.btn-sell, .btn-sell:active, .btn-sell:focus, .btn-sell:active:focus {
+				color: #d42c2c;
+				background-color: inherit;
+				border: 1px solid red;
+				font-size: 16px;
+				font-weight: bold;
+				outline: none;
+			}
+			.btn-buy:hover, .btn-buy:active  {
+				opacity: 0.7;
+				color: #4CAF50;
+			}
+			.btn-sell:hover, .btn-sell:active {
+				opacity: 0.7;
+				color: #d42c2c;
+			}
+			.btn-buy:disabled, .btn-sell:disabled {
+				opacity: 0.5;
+				color: #333;
+				border-color: #333;
 			}			
 			.red {
-				color: red;
+				color: #d42c2c;
 			}
 			.green {
 				color: #4CAF50;
 			}
-			
-			
+
 			.mb0 {
 				margin-bottom: 0;
 			}
@@ -162,7 +199,7 @@
 			}
 
 			.ticket {
-				margin-bottom: 20px;
+				margin-bottom: 24px;
 			}
 			.ticket > .item-header {
 				font-weight: 600;
@@ -206,6 +243,13 @@
 				margin-left: 120px;
 				color: gray;
 				padding: 6px;
+			}
+			
+			.chart-box {
+				display: block;
+				position: relative;
+				color: inherit;
+				padding-bottom: 10px;
 			}
 
 			.message {
@@ -504,6 +548,58 @@
 				position: static!important;
 			}
 			
+						
+			.spreadsheet {
+				width: 98%;
+			}
+			.graph-box p {
+				color: #b1afaf;
+				font-size: 1.4em;
+				font-weigth: bold;
+				font-family: 'PT Sans Caption';
+			}			
+			.graph-box .btn-cover {
+				padding: 6px 12px;
+				background-color: transparent;
+				border: 1px solid #b1afaf;
+				color: #b1afaf;
+				margin-bottom: 18px;
+				font-size: 1.0em;
+			}
+			.graph-box .graph-outline {
+				border-top: 2px dashed #b1afaf;
+				border-bottom: 2px dashed #b1afaf;
+				height: 450px;
+				margin-bottom: 24px;
+				padding: 10px 0;
+				text-align: center;
+				overflow-y: auto;
+				max-width: 100%;
+			}
+			.graph-outline .img-xm {
+				max-height: 100%;
+				width: 1100px;
+			}
+			.graph-outline .img-xl {
+				max-height: 100%;
+				width: 1600px;
+			}
+			@media (min-height: 800px) {
+				.graph-box .graph-outline {
+					height: 600px;
+				}
+			}				
+			@media (min-height: 960px) {
+				.graph-box .graph-outline {
+					height: 800px;
+				}
+			}			
+			@media (max-height: 500px) {
+				.graph-box .graph-outline {
+					height: 360px;
+				}
+			}
+			
 			@media (max-width: 1400px) {
 				body {
 					font-size: 16px!important;
@@ -733,7 +829,7 @@
 							<div class="text">
 								<span class="lightgrey">Сегодня</span> ', $formatter->asDate(date('Y-m-d', time() + 5*60*60), 'dd MMMM'), '</i><br/>
 								
-								<big id="time">', $date->format('H : i : s'), ' МСК</big>
+								<big id="stp-time">', $date->format('H : i : s'), ' МСК</big>
 								<span class="circle ', $circleClass, '">&#x25CF;</span>
 							</div>
 						</div>';
@@ -811,7 +907,7 @@
 					</div>
 					
 					<div class="helper">
-						<button class="btn btn-info" id="open-chat">
+						<button class="btn btn-success" id="open-chat">
 							<p class="text-center mb0"><big style="color:white" class="glyphicon glyphicon-comment"></big></p>
 							<span>Поддержка</span>
 						</button>
@@ -959,10 +1055,70 @@
 								<button class="btn btn-default btn-lg btn-close">Отмена</button>
 							</div>
 						</form>
-					</div>	
+					</div>
+
+					<div class="modal-box graph-box spreadsheet" id="popup-candles-1">
+						<div>					
+							<div class="graph-outline">
+								<img src="//:0" class="img-xm" />
+								<img src="//:0" class="img-xl hidden" />
+							</div>
+							
+							<p class="text-center">USD / RUB</p>
+							
+							<div style="max-width:320px; margin: 0 auto">
+								<button class="btn btn-cover btn-plus">
+									<span class="icon-group glyphicon glyphicon-plus-sign"></span>
+									<span>увеличить</span>
+								</button>
+								
+								<button class="btn btn-cover btn-minus pull-right">
+									<span class="icon-group glyphicon glyphicon-minus-sign"></span>
+									<span>уменьшить</span>
+								</button>
+							</div>
+
+							<div style="max-width:320px; margin: 0 auto">
+								<button class="btn btn-cover btn-block btn-close">
+									<span class="icon-group glyphicon glyphicon-remove-circle"></span>
+									<span>закрыть</span>
+								</button>
+							</div>
+						</div>
+					</div>
+
+					<div class="modal-box graph-box spreadsheet" id="popup-candles-2">
+						<div>				
+							<div class="graph-outline">
+								<img src="//:0" class="img-xm" />
+								<img src="//:0" class="img-xl hidden" />
+							</div>
+							
+							<p class="text-center">BRENT / USD</p>
+							
+							<div style="max-width:320px; margin: 0 auto">
+								<button class="btn btn-cover btn-plus">
+									<span class="icon-group glyphicon glyphicon-plus-sign"></span>
+									<span>увеличить</span>
+								</button>
+								
+								<button class="btn btn-cover btn-minus pull-right">
+									<span class="icon-group glyphicon glyphicon-minus-sign"></span>
+									<span>уменьшить</span>
+								</button>
+							</div>
+
+							<div style="max-width:320px; margin: 0 auto">
+								<button class="btn btn-cover btn-block btn-close">
+									<span class="icon-group glyphicon glyphicon-remove-circle"></span>
+									<span>закрыть</span>
+								</button>
+							</div>
+						</div>
+					</div>
+					
 				</div>
 			</div>
-		</div>
 		
 		<script>
 			(function() {
@@ -993,6 +1149,12 @@
 					});
 					return false;
 				});
+				$('.opener').click(function() {
+					$('.modal-cover').fadeIn(300, function() {
+						$('#popup-menu').show()
+					});
+					return false;
+				});					
 				$('.btn-close, .close').click(function() {
 					$('.modal-box').hide();
 					$('.modal-cover').fadeOut(300);

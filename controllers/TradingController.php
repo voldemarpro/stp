@@ -13,7 +13,7 @@ class TradingController extends MainController
 {
     public function actionIndex()
     {
-        return $this->render('index', [
+		return $this->render('index', [
 			'news' => News::find()
 						->orderBy(['pub_date'=>SORT_DESC, 'src' => SORT_ASC])
 						->limit(4)
