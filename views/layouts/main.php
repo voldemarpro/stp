@@ -55,6 +55,7 @@
 		<![endif]-->
 		<script>
 			var config = {
+				currency: '<?php echo STP_VRS == 1 ? 'р' : '$' ?>',
 				timeOrigin: new Date('<?php echo \gmdate('Y-m-d\TH:i:sP') ?>'),
 				timeOffset: <?php echo DTIME_OFFSET/60 ?>,
 				allowTrade: <?php echo $summary['session']['allowTrade'] ?> 
@@ -250,6 +251,10 @@
 				position: relative;
 				color: inherit;
 				padding-bottom: 10px;
+			}
+			
+			.m-position span {
+				font-size: 1.1em;
 			}
 
 			.message {
@@ -945,7 +950,7 @@
 							<p class="text-center">Вы уверены, что хотите купить?</p>
 						</div>
 						<div class="group ctrl text-center">
-							<button class="btn btn-info btn-md btn-buy">&nbsp;&nbsp;&nbsp;Да&nbsp;&nbsp;&nbsp;</button>
+							<button class="btn btn-md btn-buy btn-yes">&nbsp;&nbsp;&nbsp;Да&nbsp;&nbsp;&nbsp;</button>
 							<button class="btn btn-default btn-md btn-close">&nbsp;&nbsp;Нет&nbsp;&nbsp;</button>
 						</div>
 					</div>
@@ -958,7 +963,7 @@
 							<p class="text-center">Вы уверены, что хотите продать?</p>
 						</div>
 						<div class="group ctrl text-center">
-							<button class="btn btn-info btn-md btn-sell">&nbsp;&nbsp;&nbsp;Да&nbsp;&nbsp;&nbsp;</button>
+							<button class="btn btn-md btn-sell btn-yes">&nbsp;&nbsp;&nbsp;Да&nbsp;&nbsp;&nbsp;</button>
 							<button class="btn btn-default btn-md btn-close">&nbsp;&nbsp;Нет&nbsp;&nbsp;</button>
 						</div>
 					</div>

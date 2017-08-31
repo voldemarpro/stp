@@ -342,7 +342,10 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 				'time' => time() + 3 * 24 * 3600,
 				'allowTrade' => (int)$allowTrade,
 				'allowBuy' => (int)$allowTrade,
-				'allowSell' => (int)$allowTrade
+				'allowSell' => (int)$allowTrade,
+				'credit' => $this->credit,
+				'debit' => $this->debit,
+				'balance' => $this->credit
 			],
 			'notices'  => $noticesToArray,
 			'quotes'   => [],
@@ -367,17 +370,22 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 			} else
 				$result = $p->result;
 			
-			if ($p->type > 0)
+			if ($p->type > 0 || $p->close_time)
 				$s['session']['allowBuy'] = 0;
-			else
-				$s['session']['allowSell'] = 0;
 			
+			if ($p->type < 0 || $p->close_time)
+				$s['session']['allowSell'] = 0;
+
 			$s['position'] = [
-				'type'       => $p->type,
-				'volume'     => $p->volume,
-				'close_time' => $p->close_time,
-				'result'     => $p->result
+				'type'        => $p->type,
+				'volume'      => $p->volume,
+				'fopen_time'  => $p->fopen_time,
+				'fclose_time' => $p->fclose_time,
+				'result'      => round($result, 2)
 			];
+			
+			$s['session']['balance'] -= $p->volume * $p->open_quot;
+			$s['session']['balance'] = round($s['session']['balance'], 2);
 		
 		} else {
 			$s['session']['allowBuy'] = (int)($allowTrade && time() < Yii::$app->params['input_before']);

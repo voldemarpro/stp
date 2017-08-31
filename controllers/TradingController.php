@@ -34,11 +34,13 @@ class TradingController extends MainController
 	// Покупка
 	public function actionBuy() {
 		if (Position::validateOpen()) {
-			return (int)(new Position())->open();
+			return (int)((new Position())->open(Position::BUY_ID));
 		
 		} elseif ($p = Position::validateClose()) {
 			if ($p->type == -1)
 				return (int)$p->close();
+			else
+				return false;
 		} else
 			return false;
 	}
@@ -46,11 +48,13 @@ class TradingController extends MainController
 	// Продажа
 	public function actionSell() {
 		if (Position::validateOpen()) {
-			return (int)(new Position())->open();
+			return (int)((new Position())->open(Position::SELL_ID));
 		
 		} elseif ($p = Position::validateClose()) {
 			if ($p->type == 1)
 				return (int)$p->close();
+			else
+				return false;
 		} else
 			return false;
 	}
