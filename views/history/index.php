@@ -7,7 +7,7 @@
 
 	<?php
 	
-	$symArrOpen = [-1=>'icon-buy green', 1=>'icon-sell red'];
+	$symArrOpen = [-1=>'icon-sell red', 1=>'icon-buy green'];
 	$symArrClose = [-1=>'icon-sell', 1=>'icon-buy'];
 	$curr = STP_VRS == 1 ? '₽' : '$';
 	
