@@ -71,7 +71,7 @@
 			</div>
 
 			<div style="margin-top: 6px" class="text-left">
-				<a href="" style="color:green" onclick="$(this).prop({disabled: true}); $('#phone').prop({disabled: false}).focus(); return;">Изменить</a>
+				<a href="" style="color:green" onclick="$(this).prop({disabled: true}); $('#phone').prop({disabled: false}).focus(); return false;">Изменить</a>
 			</div>
 			
 			<div class="form-control-feedback"></div>
