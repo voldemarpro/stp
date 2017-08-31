@@ -63,12 +63,14 @@ class Position extends ActiveRecord
 		else
 			$q = $q[ STP_VRS ];
 
+		$this->user_id = Yii::$app->user->id;
 		$this->type = $type;
 		$this->open_quot = $this->type > 0 ? $q['ask'] : $q['bid'];
 		$this->open_time = date('Y-m-d H:i:s');
 		$this->volume = floor(Yii::$app->user->identity->credit / $this->open_quot);
 		
 		Yii::$app->user->identity->balance -= $this->volume * $this->open_quot;
+		Yii::$app->user->identity->balance = round(Yii::$app->user->identity->balance, 2);
 		
 		$conn = \Yii::$app->db;
 		$dbt = $conn->beginTransaction(); 
