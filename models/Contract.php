@@ -101,19 +101,22 @@ class Contract extends Model
 				1 => [			
 					'bid'    => null,
 					'ask'    => null,
-					'close'  => null
+					'close'  => 57.735
 				],
 				
 				2 => [			
 					'bid'    => null,
 					'ask'    => null,
-					'close'  => null
+					'close'  => 52.325
 				]			
 			];
+			
+			$quotesOld = @unserialize( file_get_contents( $file ) );
 			$fp = fopen($file, 'w+');
-			$content = fgets($fp);
-			$quotesOld = $content ? unserialize($content) : [];
-			$quotes = array_merge($quotesOld, $quotes);
+			if (isset($quotesOld[1]))
+				$quotes[1] = array_merge($quotes[1], $quotesOld[1]);
+			if (isset($quotesOld[2]))
+				$quotes[2] = array_merge($quotes[2], $quotesOld[2]);
 			
 			\exec('lynx -dump http://j1.forexpf.ru/delta/html/reloadquotepage.jsp', $rArray);	
 			$response = implode(';', $rArray);
@@ -126,15 +129,15 @@ class Contract extends Model
 					$match = \preg_match_all($pattern, $response, /*implode(';', $response), */$matches);
 					
 					if ($match) {
-						$quotes[$i]['bid'] = (float)trim($matches[1][0], "'");
-						$quotes[$i]['ask'] = (float)trim($matches[2][0], "'");
+						$quotes[$i]['bid'] = round((float)trim($matches[1][0], "'"), 2);
+						$quotes[$i]['ask'] = round((float)trim($matches[2][0], "'"), 2);
 						if (time() >= \Yii::$app->params['close_time'])
-							$quotes[$i]['close'] = ($quotes[$i]['bid'] + $quotes[$i]['ask']) / 2;
+							$quotes[$i]['close'] = round(($quotes[$i]['bid'] + $quotes[$i]['ask']) / 2, 3);
 					}
 				}
 				
 				flock($fp, LOCK_EX); // Блокирование файла для записи
-				fwrite($fp, serialize($fp));
+				fwrite($fp, serialize($quotes));
 				flock($fp, LOCK_UN); // Снятие блокировки
 				fflush($fp);
 				fclose($fp);
