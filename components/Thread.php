@@ -54,7 +54,7 @@ class Thread extends ActiveRecord
 				}
 			}
 			if (\Yii::$app->requestedRoute && \mb_strpos(\Yii::$app->requestedRoute, 'thread', 0, 'utf-8') ===  false) {
-				$arr = explode('/', \Yii::$app->requestedRoute);
+				$arr = explode('/', trim(\Yii::$app->requestedRoute, '/'));
 				$modules = \Yii::$app->getModules(true);
 				$module = reset($modules);
 				
@@ -170,6 +170,8 @@ class Thread extends ActiveRecord
      */		
     public static function sendmail($to, $from, $subject, $body)
     {
+		require \Yii::getAlias('@app/vendor/swiftmailer/lib/swift_required.php');
+				
 		$transport = \Swift_SmtpTransport::newInstance('smtp.gmail.com', 465, 'ssl')
 		  ->setUsername( Yii::$app->params['admin_email'] )
 		  ->setPassword( base64_decode( file_get_contents(\Yii::getAlias('@app/config/mkey.dat')) ) );
