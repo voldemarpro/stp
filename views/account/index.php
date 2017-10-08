@@ -7,12 +7,6 @@ $curr = STP_VRS == 1 ? '₽' : '$';
 $stpCardFormatted = \chunk_split(\Yii::$app->user->identity->sotacard, 4, ' ');
 if (\strlen(\Yii::$app->user->identity->sotacard) == 17)
 	$stpCardFormatted = \substr($stpCardFormatted, 0, \strlen($stpCardFormatted) - 3).\substr($stpCardFormatted, -2, 1);
-
-// минимальная сумма на вывод
-if ($debit >= \Yii::$app->params['payout_minimum'])
-	$minStr = 'до ' .app\models\Position::formatSum( \floor(\Yii::$app->user->identity->debit < 10000 ? \Yii::$app->user->identity->debit : 10000) );
-else	
-	$minStr = 'от ' . \Yii::$app->params['payout_minimum'];
 ?>
 
 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -35,7 +29,7 @@ else
 	</ul>
 </div>
 
-<?php if (\Yii::$app->user->identity->tariff_id <= 1): ?>
+<?php if (\Yii::$app->user->identity->tariff_id <= 2): ?>
 <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">	
 	<h2><span>Заявка на <br class="visible-xs-inline-block" />перевод средств</span></h2>
 	<form method="post" action="/<?php echo yii\helpers\Url::to("{$this->context->id}/post") ?>" role="form" id="f1">
@@ -43,7 +37,7 @@ else
 			<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">	
 				<div class="form-group">	
 					<label for="f1_amount">Сумма</label>
-					<input id="f1_amount" type="text" class="form-control input-lg" name="amount" value="" placeholder="" />
+					<input id="f1_amount" type="text" class="form-control input-md" name="amount" value="" placeholder="" />
 					<div class="form-control-feedback"></div>											
 				</div>
 			</div>
@@ -51,7 +45,7 @@ else
 			<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">	
 				<div class="form-group">
 					<label for="f1_card">Счет-получатель</label>
-					<select id="f1_card" class="form-control input-lg" name="aux">
+					<select id="f1_card" class="form-control input-md" name="aux">
 						<option value="">Не выбран</option><?php
 						
 						foreach (app\models\MoneyTransfer::$recipients as $key=>$name) {
@@ -93,8 +87,8 @@ else
 		<div class="form-group row">
 			<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">	
 				<div class="form-group">
-					<label for="f1_amount">Сумма надбавки</label>
-					<input id="f1_amount" type="text" class="form-control input-lg" name="amount" value="" />
+					<label for="f1_amount">Сумма</label>
+					<input id="f1_amount" type="text" class="form-control input-md" name="amount" value="" />
 					<div class="form-control-feedback"></div>								
 				</div>
 			</div>
