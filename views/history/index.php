@@ -8,7 +8,7 @@
 	<?php
 	
 	$symArrOpen = [-1=>'icon-sell red', 1=>'icon-buy green'];
-	$symArrClose = [-1=>'icon-sell', 1=>'icon-buy'];
+	$symArrClose = [-1=>'icon-buy', 1=>'icon-sell'];
 	$curr = STP_VRS == 1 ? '₽' : '$';
 	
 	if (count($items))
@@ -16,7 +16,7 @@
 		foreach ($items as $it)
 		{	
 			echo '
-			<div class="col-xs-12 col-sm-12 col-md-6 col-lg-4">	
+			<div class="col-xs-12 col-sm-6 col-md-6 col-lg-4">	
 				<dl class="dl-horizontal item-frame">
 					<dt>Дата</dt>
 					<dd>'.$it->fdate.'</dd>
