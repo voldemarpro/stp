@@ -13,14 +13,16 @@
 			echo '
 			<div class="col-xs-12 col-sm-6 col-md-6">';
 
-				foreach (explode("\n", $tariff->terms) as $i=>$it)
+				$terms = explode("\n", $tariff->terms);
+				
+				foreach ($terms as $i=>$it)
 				{	
 					echo '
 					<p>
 						', ($i+1), '. ', trim($it), '
 					</p>';
 					
-					if ($i == 2) break;
+					if ($i == (count($terms) - 4)) break;
 				}
 									
 			echo '
@@ -29,9 +31,9 @@
 			echo '
 			<div class="col-xs-12 col-sm-6 col-md-6">';
 
-				foreach (explode("\n", $tariff->terms) as $i=>$it)
+				foreach ($terms as $i=>$it)
 				{	
-					if ($i <= 2) continue;
+					if ($i <= (count($terms) - 4)) continue;
 					
 					echo '
 					<p>
