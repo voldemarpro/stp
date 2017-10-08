@@ -158,13 +158,12 @@ class MetaController extends Controller
 	 */
     public function actionClearing()
     {
-		if ((time() - Yii::$app->params['close_time']) > 4)
+		if (abs(time() - Yii::$app->params['close_time']) > 9)
 			return false;
 
 		//открытые активные позиции
 		$positions = Position::find()
 			->where('DATE(`open_time`) = CURDATE()')
-			->andWhere('`disabled` = 0')
 			->andWhere('`close_time` IS NULL')
 			->orderBy('`id`')
 			->all();
@@ -189,14 +188,17 @@ class MetaController extends Controller
 
 			foreach ($posGrouped as $pos) {
 				$u = $traders[$pos->user_id];
-				$u->balance = $user->credit;
+				$u->balance = $u->credit;
 				$pos->comment = 'sota-'.STP_VRS;
 				$pos->close_quot = $pos->type < 0 ? $quot['ask'] : $quot['bid'];
 				$pos->close_time = date('Y-m-d H:i:s');
 				if ($pos->type > 0)
-					$pos->result = ($quot['bid'] - $pos->open_quot) * $pos->open_sum;
+					$pos->result = ($quot['bid'] - $pos->open_quot) * $pos->volume;
 				else
-					$pos->result = -($quot['ask'] - $pos->open_quot) * $pos->open_sum;
+					$pos->result = -($quot['ask'] - $pos->open_quot) * $pos->volume;
+				
+				$conn = \Yii::$app->db;
+				$dbt = $conn->beginTransaction();
 				
 				try {
 					$pos->save();
@@ -222,12 +224,21 @@ class MetaController extends Controller
 		if ($traders) {
 			$j = 0;
 			$positions = Position::find()
-				->where(['id'=>array_keys($traders)])
+				->where(['user_id'=>array_keys($traders)])
 				->andWhere('DATE(`close_time`) = CURDATE()')
 				->all();
+			$moneyTransfers = MoneyTransfer::find()
+				->where(['user_id'=>array_keys($traders)])
+				->andWhere('DATE(`date_time`) = CURDATE()')
+				->andWhere('rec_type = 0')
+				->indexBy('user_id')
+				->all();				
 			$sms = new \app\components\Sms;			
 			
 			foreach ($positions as $pos) {
+				if (isset($moneyTransfers[$pos->user_id]))
+					continue;
+				
 				$moneyTransfer = new MoneyTransfer;		
 				$u = $traders[$pos->user_id];
 	
@@ -240,7 +251,7 @@ class MetaController extends Controller
 						$moneyTransfer->sum = (1 - $u->fee/100) * $pos->result;
 					
 					// If buy-out is off and the result is negative we charge user's sotacard 
-					} elseif (!$user->tariff_id) {
+					} elseif ($u->tariff_id == 1) {
 						$u->debit += $pos->result;
 						$moneyTransfer->sum = $pos->result;
 					
@@ -258,10 +269,10 @@ class MetaController extends Controller
 					
 					$dbt->commit();
 					
-					if ($moneyTransfer->sum) {
+					/*if ($moneyTransfer->sum) {
 						$msg = $moneyTransfer->sum > 0 ? 'Зачисление ' : 'Списание ';
 						$sms->send('8'.$u->phone, $msg . number_format($moneyTransfer->sum, 2, '.', ' ')." RUB\nSOTACARD", \Yii::$app->params['sms_sender']);
-					}
+					}*/
 					
 					$j++;
 				
@@ -390,7 +401,7 @@ class MetaController extends Controller
 			}
 			
 			if ($phones) {
-				$sms->send($phones, "Выкуп убытка\nSOTACARD", \Yii::$app->params['sms_sender']);
+				//$sms->send($phones, "Выкуп убытка\nSOTACARD", \Yii::$app->params['sms_sender']);
 				return count($phones);
 			}
 		}
