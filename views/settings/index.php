@@ -1,14 +1,12 @@
 <?php
-	$user = \Yii::$app->user->identity;
+$user = \Yii::$app->user->identity;
 
-	if ($user->pay_card) {
-		$pay_card_splitted = \explode("\n", \chunk_split($user->pay_card, 4, "\n"));
-		if (isset($pay_card_splitted[4]))
-			$pay_card_splitted[3] = $pay_card_splitted[3] . $pay_card_splitted[4];
-	 } else
-		$pay_card_splitted = \array_fill(0, 4, '');
-		
-
+if ($user->pay_card) {
+	$pay_card_splitted = \explode("\n", \chunk_split($user->pay_card, 4, "\n"));
+	if (isset($pay_card_splitted[4]))
+		$pay_card_splitted[3] = $pay_card_splitted[3] . $pay_card_splitted[4];
+ } else
+	$pay_card_splitted = \array_fill(0, 4, '');
 ?> 
 <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
 
@@ -23,24 +21,24 @@
 		<h2>Личные данные</h2>	
 		<div class="form-group required">
 			<label for="last_name">Фамилия<sup class="grey">*</sup></label>
-			<input id="last_name" type="text" class="form-control input-lg" name="last_name" value="<?php echo $user->last_name ?>" />
+			<input id="last_name" type="text" class="form-control input-md" name="last_name" value="<?php echo $user->last_name ?>" />
 			<div class="form-control-feedback"></div>
 		</div>
 		<div class="form-group required">
 			<label for="first_name">Имя<sup class="grey">*</sup></label>
-			<input id="first_name" type="text" class="form-control input-lg" name="first_name" value="<?php echo $user->first_name ?>" />
+			<input id="first_name" type="text" class="form-control input-md" name="first_name" value="<?php echo $user->first_name ?>" />
 			<div class="form-control-feedback"></div>
 		</div>
 		<div class="form-group required">
 			<label for="mid_name">Отчество<sup class="grey">*</sup></label>
-			<input id="mid_name" type="text" class="form-control input-lg" name="mid_name" value="<?php echo $user->mid_name ?>" />
+			<input id="mid_name" type="text" class="form-control input-md" name="mid_name" value="<?php echo $user->mid_name ?>" />
 			<div class="form-control-feedback"></div>
 		</div>
 		
 		<div class="form-group row">
 			<label class="col-xs-12 col-sm-12 col-md-12 col-lg-12" for="issue_date">Дата рождения<sup class="grey">*</sup></label>
 			<div class="col-xs-6 col-sm-6 col-md-4 col-lg-4 required">
-				<input id="birth_date" type="text" class="form-control input-lg" name="birth_date" maxlength="10" value="<?php echo $user->birth_date ? \date('d/m/Y', strtotime($user->birth_date)) : '' ?>" />
+				<input id="birth_date" type="text" class="form-control input-md" name="birth_date" maxlength="10" value="<?php echo $user->birth_date ? \date('d/m/Y', strtotime($user->birth_date)) : '' ?>" />
 			</div>
 			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
 				<div class="form-control-feedback"></div>
@@ -66,8 +64,8 @@
 			<input type="hidden" name="phone" value="<?php echo $user->phone ?>" />
 			<div class="input-group required">
 				<span class="input-group-addon text">+7</span>
-				<input disabled="disabled" id="phone" type="text" class="form-control input-lg" name="phone" value="<?php echo $user->phone ?>" placeholder="например, 905-111-2233" />
-				<?php if ($user->grade & pow(2, 3)) echo '<span class="input-ok glyphicon glyphicon-ok"></span>' ?>
+				<input disabled="disabled" id="phone" type="text" class="form-control input-md" name="phone" value="<?php echo $user->phone ?>" placeholder="например, 905-111-2233" />
+				<?php if ($user->grade & pow(2, 3)) echo '<small class="input-ok glyphicon glyphicon-ok"></small>' ?>
 			</div>
 
 			<div style="margin-top: 6px" class="text-left">
@@ -80,8 +78,8 @@
 		<div class="form-group">
 			<label for="email">Эл. почта<sup class="grey">*</sup></label>
 			<div class="input-group col-lg-12 required">
-				<input id="email" type="text" class="form-control input-lg" name="email" value="<?php echo $user->email ?>" />
-				<?php if ($user->grade & pow(2, 4)) echo '<span class="input-ok glyphicon glyphicon-ok"></span>' ?>
+				<input id="email" type="text" class="form-control input-md" name="email" value="<?php echo $user->email ?>" />
+				<?php if ($user->grade & pow(2, 4)) echo '<small class="input-ok glyphicon glyphicon-ok"></small>' ?>
 			</div>
 			<div class="form-control-feedback"></div>
 		</div>
@@ -97,16 +95,16 @@
 			<label class="col-xs-12 col-sm-12 col-md-12 col-lg-12">Номер карты</label>
 			
 			<div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
-				<input type="text" class="form-control input-lg" name="pay_card" maxlength="4" value="', $pay_card_splitted[0], '" />
+				<input type="text" class="form-control input-md" name="pay_card" maxlength="4" value="', $pay_card_splitted[0], '" />
 			</div>
 			<div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
-				<input type="text" class="form-control input-lg" name="pay_card" maxlength="4" value="', $pay_card_splitted[1], '" />
+				<input type="text" class="form-control input-md" name="pay_card" maxlength="4" value="', $pay_card_splitted[1], '" />
 			</div>
 			<div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
-				<input type="text" class="form-control input-lg" name="pay_card" maxlength="4" value="', $pay_card_splitted[2], '" />
+				<input type="text" class="form-control input-md" name="pay_card" maxlength="4" value="', $pay_card_splitted[2], '" />
 			</div>
 			<div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
-				<input type="text" class="form-control input-lg" name="pay_card" maxlength="6" value="', $pay_card_splitted[3], '" />
+				<input type="text" class="form-control input-md" name="pay_card" maxlength="6" value="', $pay_card_splitted[3], '" />
 			</div>
 			
 			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -116,7 +114,7 @@
 		
 		<div class="form-group">
 			<label for="pay_bank">Наименование банка</label>
-			<input id="pay_bank" type="text" class="form-control input-lg" name="pay_bank" value="', $user->pay_bank, '" />
+			<input id="pay_bank" type="text" class="form-control input-md" name="pay_bank" value="', $user->pay_bank, '" />
 			<div class="form-control-feedback"></div>
 		</div>';
 		
@@ -128,7 +126,7 @@
 			<label for="pwd" class="col-xs-12 col-sm-12 col-md-12 col-lg-12">Новый пароль</label>
 			
 			<div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-				<input id="pwd" type="text" class="form-control input-lg" name="pwd" maxlength="20" value="" />
+				<input id="pwd" type="text" class="form-control input-md" name="pwd" maxlength="20" value="" />
 			</div>
 			
 			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -191,8 +189,8 @@
 					$.get('/settings/confirm', {phone: params['phone']} )
 					 .done(function(resp) {
 						if (parseInt(resp)) {
-							STP.dialog.open('#popup-numaber');
-							$('#popup-numaber').find('.btn-success').click(function(e) {
+							STP.dialog.open('#popup-number');
+							$('#popup-number').find('.btn-success').click(function(e) {
 								delete params['phone'];
 								$('[name=phone]').filter(':hidden').val(params['phone']);
 								$('#phone').prop({disabled: true});
@@ -234,7 +232,7 @@
 			});
 
 			if (formValid) {
-				STP.dialog.showProc();
+				STP.dialog.showProc(); console.log(params);
 				$.post($(this).attr('action'), params)
 				 .done(function(resp) {
 					if (resp == 1) {

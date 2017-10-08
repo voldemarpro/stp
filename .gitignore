@@ -4,7 +4,13 @@ vendor/
 sql/
 runtime/
 assets/
-web/
+web/favicon.png
+web/.htaccess
+web/assets/**
+web/fonts/**
+web/res/**
+web/js/**
+web/styles/**
 !web/index.php
 !web/js/stp.min.js
-!web/styles/common.css
+!web/styles/stp.css
