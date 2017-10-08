@@ -18,7 +18,7 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 	const ERR_PHONE_USED = 'Номер телефона уже зарегистрирован';
 	const ERR_PROFILE_EDIT = 'Ошибка редактирования профиля';
 
-	public $oldLogin = '';
+	public $oldPhone = '';
 	
 	public $grades = [
 		0 => 'Новый',
@@ -56,7 +56,7 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 			'email'		=> 'Электронная почта',
 			'birth_date'=> 'Дата рождения',
 			
-			'login'		=> 'Логин',
+			//'login'		=> 'Логин',
 			'pwd'		=> 'Пароль',
 			
 			'deposit'	=> 'Депозит',
@@ -147,8 +147,8 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 			[['first_name', 'last_name', 'mid_name'], 'string', 'max' => 15],
 			[['birth_date', 'start_date', 'end_date'], 'date', 'format'=>'Y-m-d', 'message'=>'Некорректная дата'],			
 			
-			['login', 'unique', 'message' => 'Логин уже занят', 'filter' => ['!=', 'login', $this->oldLogin]],
-			['login', 'checkDevLogin'],
+			['phone', 'unique', 'message' => 'Телефон уже занят', 'filter' => ['!=', 'phone', $this->oldPhone]],
+			//['login', 'checkDevLogin'],
 			['email', 'email', 'message' => 'Неправильный email'],
 			['grade', 'number'],
 			['fee', 'integer', 'max' => 100, 'min'=>0],
@@ -336,7 +336,7 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 			foreach ($notices as $obj)
 				$noticesToArray[] = ['id'=>$obj->id, 'text'=>$obj->message];
 		
-		$allowTrade = time() < Yii::$app->params['close_time'] || time() > Yii::$app->params['open_time'];
+		$allowTrade = time() < Yii::$app->params['close_time'] && time() > Yii::$app->params['open_time'];
 		$s = [
 			'session' => [
 				'time' => time() + 3 * 24 * 3600,
@@ -349,13 +349,13 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 			],
 			'notices'  => $noticesToArray,
 			'quotes'   => [],
-			'position' => []
+			'position' => null
 		];
 		
 		$q = Contract::getQuotes();
 		$s['quotes'] = $q[STP_VRS];
 		$s['quotes']['diff'] = $s['quotes']['close'] 
-								? ($s['quotes']['close'] - ($s['quotes']['bid'] + $s['quotes']['ask']) / 2) / $s['quotes']['close'] * 100
+								? (($s['quotes']['bid'] + $s['quotes']['ask']) / 2  - $s['quotes']['close']) / $s['quotes']['close'] * 100
 								: 0;
 		$s['quotes']['diff'] = round($s['quotes']['diff'], 2);						
 		
@@ -370,10 +370,10 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 			} else
 				$result = $p->result;
 			
-			if ($p->type > 0 || $p->close_time)
+			if ($p->type > 0 || $p->close_time || !$allowTrade)
 				$s['session']['allowBuy'] = 0;
 			
-			if ($p->type < 0 || $p->close_time)
+			if ($p->type < 0 || $p->close_time || !$allowTrade)
 				$s['session']['allowSell'] = 0;
 
 			$s['position'] = [
@@ -384,9 +384,11 @@ class Trader extends ActiveRecord implements \yii\web\IdentityInterface
 				'result'      => round($result, 2)
 			];
 			
-			$s['session']['balance'] -= $p->volume * $p->open_quot;
-			$s['session']['balance'] = round($s['session']['balance'], 2);
-		
+			if (!$p->close_time) {
+				$s['session']['balance'] -= $p->volume * $p->open_quot;
+				$s['session']['balance'] = round($s['session']['balance'], 2);
+			}
+			
 		} else {
 			$s['session']['allowBuy'] = (int)($allowTrade && time() < Yii::$app->params['input_before']);
 			$s['session']['allowSell'] = (int)($allowTrade && time() < Yii::$app->params['input_before']);

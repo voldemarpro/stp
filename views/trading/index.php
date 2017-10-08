@@ -136,7 +136,7 @@ if ($summary['position']):
 		
 		<div class="col-xs-12 col-sm-6 col-lg-4">
 			<br class="hidden-lg hidden-md hidden-sm" />
-			<button class="btn btn-buy btn-block"<?php echo !$summary['session']['allowBuy'] ? ' disabled="disabled"' : '' ?>><span class="icon-buy"></span> Купить</button>
+			<button class="btn btn-buy btn-block"<?php echo !$summary['session']['allowBuy'] ? ' disabled="disabled"' : '' ?>><span class="icon-buy"></span> Купить<span class="hidden-lg hidden-sm visible-xs-inline-block">&nbsp;&nbsp;&nbsp;</span></button>
 		</div>
 		<div class="col-xs-12 col-sm-6 col-lg-4">
 			<br class="hidden-lg hidden-md hidden-sm" />
@@ -159,19 +159,19 @@ if ($summary['position']):
 		<div class="col-xs-6 col-lg-6">
 			<h3>Баланс</h3>
 			<p class="gray">
-				<span id="balance"><?php echo printSum($summary['session']['balance'], 2) ?></span>&nbsp;<?php echo $curr ?>
+				<span id="balance"><?php echo printSum($summary['session']['balance'], ($summary['position'] && !$summary['position']['fclose_time'] ? 2 : 0)) ?></span>&nbsp;<?php echo $curr ?>
 			</p>
 		</div>
 		<div class="col-xs-6 col-lg-6">
 			<h3>Позиция</h3>
-			<p class="gray mb0">
+			<p class="gray mb6">
 				<span id="volume"><?php echo $summary['position'] ? ( ($summary['position']['type'] < 0 ? '&ndash; ' : '') . printSum($summary['position']['volume']) ) : '&mdash;' ?></span>&nbsp;<span><?php echo STP_VRS == 1 ? '$' : 'bbl' ?></span>
 			</p>
 			<small class="lightgrey"><?php echo $summary['position'] ? $summary['position']['fopen_time'] : '' ?></small>
 		</div>
 		<div class="col-xs-6 col-lg-6">
 			<h3>Результат</h3>
-			<p class="gray mb0">
+			<p class="gray mb6">
 				<span id="result"><?php echo $summary['position'] ? ( ($summary['position']['result'] < 0 ? '&ndash; ' : '+ ') . printSum(abs($summary['position']['result']), 2) ) : '&mdash;' ?></span>&nbsp;<?php echo $curr ?>
 			</p>
 			<small class="lightgrey"><?php echo $summary['position'] ? $summary['position']['fclose_time'] : '' ?></small>
@@ -186,7 +186,7 @@ if ($summary['position']):
 		var suffix = <?php echo crc32(time()) ?>;
 		var chartData = eval('<?php echo json_encode($chartData) ?>');
 		var graphUpdate = function() {
-			if (i == 60) {
+			if (i == 30) {
 				$('.modal-cover').fadeOut();
 				window.location.reload();
 			}
@@ -206,7 +206,7 @@ if ($summary['position']):
 			i++;
 		};
 		$('.nav-tabs a').click(function() {
-			i = (i >= 30) ? 15 : i;
+			i = (i >= 15) ? 15 : i;
 			tick = $(this).parent().index();
 			graphUpdate();
 			$(this).parent().addClass('active')
@@ -272,9 +272,12 @@ if ($summary['position']):
 			e.preventDefault();
 			STP.beforeBuy(function() {
 				$.get('/trading/buy').done(function(resp) {
-					if (resp == 1)
-						STP.dialog.close();
-					else {
+					if (resp == 1) {
+						STP.dialog.showProc();
+						window.setTimeout(function() {
+							STP.dialog.close();
+						}, 2300);
+					} else {
 						STP.dialog.showStatus('Произошла ошибка');
 						console.log(resp);
 					}
@@ -285,9 +288,12 @@ if ($summary['position']):
 			e.preventDefault();			
 			STP.beforeSell(function() {
 				$.get('/trading/sell').done(function(resp) {
-					if (resp == 1)
-						STP.dialog.close();
-					else {
+					if (resp == 1) {
+						STP.dialog.showProc();
+						window.setTimeout(function() {
+							STP.dialog.close();
+						}, 2300);
+					} else {
 						STP.dialog.showStatus('Произошла ошибка');
 						console.log(resp);
 					}
@@ -302,13 +308,13 @@ if ($summary['position']):
 		STP.onServerResponse = function(resp) {
 			$('#quote-bid').text( (resp.quotes.bid).toFixed(2) );
 			$('#quote-ask').text( (resp.quotes.ask).toFixed(2) );
-			$('#quote-diff').text( Math.round(resp.quotes.diff) );
+			$('#quote-diff').text( Math.round(resp.quotes.diff * 100) / 100 );
 			$('#credit').text( formatSum(resp.session.credit) );
 			$('#balance').text( formatSum(resp.session.balance) );
 			$('.btn-buy').prop('disabled', !resp.session.allowBuy);
 			$('.btn-sell').prop('disabled', !resp.session.allowSell);
 
-			if (resp.position == null || resp.position == {}) {
+			if (resp.position == null || !resp.position.fopen_time) {
 				$('#volume').html('&mdash;').parent().next().text('');
 				$('#result').html('&mdash;').parent().next().text('');
 				if ($('.m-position').length)
