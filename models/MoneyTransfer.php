@@ -11,8 +11,8 @@ use yii\db\ActiveRecord;
 class MoneyTransfer extends ActiveRecord
 {	
 	public static $grades = [
-		'Клиринг по сделке',
-		'Монетизация',
+		'Клиринг по торговле',
+		'Выплата',
 		'Бонус'
 	];
 	
@@ -44,8 +44,9 @@ class MoneyTransfer extends ActiveRecord
 	
 	public function attributeFormats() {
 		return [
-			'rec_type'  => 11,
-			'grade'     => 19
+			'rec_type'  => 18,
+			'grade'     => 18,
+			'user_id'   => 18
 		];
 	}
 	
@@ -55,5 +56,15 @@ class MoneyTransfer extends ActiveRecord
             'default' =>  \array_slice(\array_keys($this->tableSchema->columns), 1)
         ];
     }
+	
+	
+	/**
+     * @return array Validation rules
+     */	
+	public function rules() {
+		return [
+			[['date_time', 'sum'], 'required', 'skipOnEmpty'=>false, 'message' => 'Обязательное поле']		
+		];
+	}	
 }
 ?>
