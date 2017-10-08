@@ -34,16 +34,7 @@ class SettingsController extends MainController
 			$model = Yii::$app->user->identity;
 			
 			$model->scenario = 'update';
-			
-			if (!empty($params['passport']) && is_array($params['passport']) && count($params['passport']) == 4) {
-				$params['passport'] = implode('|', $params['passport']);
-				if (!trim($params['passport'], '|'))
-					unset($params['passport']);
-				else
-					$params['passport'] = Trader::myAESencrypt($params['passport']);
-			} else
-				unset($params['passport']);
-				
+
 			if (!empty($params['crc']) && !empty($params['phone'])) {
 				
 				if (is_array($params['phone']))
@@ -73,14 +64,14 @@ class SettingsController extends MainController
 			}
 			
 			foreach($params as $key=>&$p) {
-				if (\is_array($p)) {
+				if (is_array($p)) {
 
 					if (!($p = implode('', $p))) {
 						unset($params[$key]);
 						continue;
 					}
 
-				} elseif (\substr($key, -4) == 'date') {
+				} elseif (substr($key, -4) == 'date') {
 					$p = explode('/', $p);
 					$p = implode('-', array_reverse($p));
 				}
@@ -93,10 +84,8 @@ class SettingsController extends MainController
 				$params['pwd'] = Trader::myAESencrypt(trim($params['pwd']));
 			else
 				$params['pwd'] = $model->pwd;
-			
-			$params['login'] = $model->login;
-	
-			$model->oldLogin = $model->login;
+
+			$model->oldPhone = $model->phone;
 			$model->setAttributes($params);
 			
 			if (!($model->grade & 4))
@@ -105,7 +94,7 @@ class SettingsController extends MainController
 			if ($model->save())
 				return '1';
 			else
-				return \json_encode($model->firstErrors, JSON_FORCE_OBJECT);
+				return json_encode($model->firstErrors, JSON_FORCE_OBJECT);
 
 		}
     }
